@@ -1,10 +1,35 @@
 {
-    "files.autoSave": "onFocusChange",
+    "files.associations": {
+        "*.h": "cpp",
+        "iostream": "cpp",
+        "set": "cpp"
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "editor.formatOnSave": true,
-    "editor.defaultFormatter": "ms-vscode.cpptools",
-    "C_Cpp.default.compilerPath": "/usr/bin/clang++",
-    "C_Cpp.default.cppStandard": "c++17",
-    "C_Cpp.default.intelliSenseMode": "macos-clang-x64",
-    "C_Cpp.clang_format_fallbackStyle": "google"
+    "cmake.cmakePath": "cmake",
+    "C_Cpp.clang_format_style": "file",
+    "C_Cpp.clang_format_fallbackStyle": "Google",
+    "cmake.buildDirectory": "${workspaceFolder}/out/build/default",
+    "cmake.generator": "Unix Makefiles",
+    "cmake.configureArgs": [
+        "-DCMAKE_C_COMPILER=/usr/bin/clang",
+        "-DCMAKE_CXX_COMPILER=/usr/bin/clang++"
+    ],
+    "cmake.debugConfig": {
+        "type": "lldb", // lldb 디버거 타입으로 변경
+        "request": "launch",
+        "program": "${command:cmake.launchTargetPath}",
+        "args": [],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "setupCommands": [
+            {
+                "description": "Enable pretty-printing for lldb",
+                "text": "settings set target.max-children-count 256",
+                "ignoreFailures": true
+            }
+        ]
+    }
 }
-
