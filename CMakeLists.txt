@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.30)
-project(cpp-data-structure)
+project(default)
 
 # Set the C++ standard
 set(CMAKE_CXX_STANDARD 17)
