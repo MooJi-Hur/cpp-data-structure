@@ -1,0 +1,2 @@
+nullAscii == zero : 1
+zero == null : 1
