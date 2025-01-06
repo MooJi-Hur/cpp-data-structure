@@ -8,8 +8,8 @@ fi
 
 # Define the problem number and create the folder for the problem
 PROBLEM_NUMBER=$1
-PROBLEM_FOLDER="$PROBLEM_NUMBER"
-mkdir -p "$PROBLEM_FOLDER"
+PROBLEM_FOLDER="problem-set"
+mkdir -p "$PROBLEM_FOLDER/$PROBLEM_NUMBER"
 
 # Change directory to the problem folder
 cd "$PROBLEM_FOLDER"
@@ -21,43 +21,23 @@ cat > main.cpp <<EOL
  * URL: https://www.acmicpc.net/problem/$PROBLEM_NUMBER
  */
 
+#include "timer.h"
+
+/** === Timing ===
+Insert the following timer functions
+at the beginning and end of the code block.
+auto start = startTimer();
+stopTimer(start);
+*/
+
+
 // Add include files and namespaces.
 
-#ifndef ONLINE_JUDGE
-#include <chrono>
-#include <fstream>
-using namespace chrono;
-
-#endif
-
-int main() {
-// === File I/O and Timing ===
-#ifndef ONLINE_JUDGE
-  auto start = high_resolution_clock::now();
-
-  ifstream inputFile("input.txt");
-  ofstream outputFile("output.txt");
-
-  if (inputFile && outputFile) {
-    cin.rdbuf(inputFile.rdbuf());
-    cout.rdbuf(outputFile.rdbuf());
-  } else {
-    cerr << "Error: Could not open files." << endl;
-    return 1;
-  }
-#endif
 
 // Add your code.
 
-// === Timing ===
-#ifndef ONLINE_JUDGE
-  auto end = high_resolution_clock::now();
-  clog << "Time: " << duration_cast<milliseconds>(end - start).count() << "ms "
-       << endl;
-#endif
 
-  return 0;
-}
+
 
 EOL
 

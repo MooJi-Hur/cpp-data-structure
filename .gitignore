@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,c++
-# Edit at https://www.toptal.com/developers/gitignore?templates=macos,visualstudiocode,c++
+# Created by https://www.toptal.com/developers/gitignore/api/macos,c++,visualstudiocode
+# Edit at https://www.toptal.com/developers/gitignore?templates=macos,c++,visualstudiocode
 
 ### C++ ###
 # Prerequisites
@@ -34,8 +34,6 @@
 *.exe
 *.out
 *.app
-**/main.dSYM/**
-**/main
 
 ### macOS ###
 # General
@@ -72,7 +70,6 @@ Temporary Items
 
 ### VisualStudioCode ###
 .vscode/*
-!.vscode/c_cpp_properties.json
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -90,4 +87,11 @@ Temporary Items
 .history
 .ionide
 
-# End of https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,c++
+### build
+out/*
+
+### input output text files
+problem-set/*/input.txt
+problem-set/*/output.txt
+
+# End of https://www.toptal.com/developers/gitignore/api/macos,c++,visualstudiocode
