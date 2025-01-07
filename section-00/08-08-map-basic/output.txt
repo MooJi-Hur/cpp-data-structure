@@ -1,0 +1,14 @@
+0
+4
+Not Found.
+na : 10
+
+ha : 3
+kim : 1
+lee : 2
+na : 10
+
+ha : 3
+kim : 1
+lee : 2
+na : 10
