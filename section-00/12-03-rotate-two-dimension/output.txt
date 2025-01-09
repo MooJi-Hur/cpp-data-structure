@@ -1,0 +1,16 @@
+Original Matrix:
+1 2 3 4 
+5 6 7 8 
+9 10 11 12 
+
+Rotated Right 90 degrees:
+9 5 1 
+10 6 2 
+11 7 3 
+12 8 4 
+
+Rotated Left 90 degrees:
+1 2 3 4 
+5 6 7 8 
+9 10 11 12 
+
