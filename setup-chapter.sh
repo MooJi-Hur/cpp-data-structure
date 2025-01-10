@@ -17,7 +17,7 @@ mkdir -p "$SECTION_NAME/$CHAPTER_NAME"
 cd "$SECTION_NAME/$CHAPTER_NAME"
 
 # Create the Main.cpp file
-touch main.cpp input.txt output.txt
+touch main.cpp input.txt output.txt README.md
 
 echo "Setup completed for $SECTION_NAME/$CHAPTER_NAME."
 
