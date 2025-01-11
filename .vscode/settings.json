@@ -6,9 +6,10 @@
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "editor.formatOnSave": true,
+    "editor.indentSize": "tabSize",
+    "editor.tabSize": 4,
+    "files.eol": "\r\n",
     "cmake.cmakePath": "cmake",
-    "C_Cpp.clang_format_style": "file",
-    "C_Cpp.clang_format_fallbackStyle": "Google",
     "cmake.buildDirectory": "${workspaceFolder}/out/build/default",
     "cmake.generator": "Unix Makefiles",
     "cmake.configureArgs": [

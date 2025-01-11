@@ -1,18 +1,19 @@
 #!/bin/bash
 
 # Check if a problem number is provided as an argument
-if [ -z "$1" ]; then
-  echo "Usage: $0 <problem_number>"
+if [ $# -ne 3 ]; then
+  echo "Usage: $0 <section_name> <problem_index> <problem_number>"
   exit 1
 fi
 
 # Define the problem number and create the folder for the problem
-PROBLEM_NUMBER=$1
-PROBLEM_FOLDER="problem-set"
-mkdir -p "$PROBLEM_FOLDER/$PROBLEM_NUMBER"
+SECTION_NAME=$1
+PROBLEM_INDEX=$2
+PROBLEM_NUMBER=$3
+mkdir -p "$SECTION_NAME/$PROBLEM_INDEX-$PROBLEM_NUMBER"
 
 # Change directory to the problem folder
-cd "$PROBLEM_FOLDER"
+cd "$SECTION_NAME/$PROBLEM_INDEX-$PROBLEM_NUMBER"
 
 # Create the Main.cc file
 cat > main.cpp <<EOL
@@ -21,7 +22,7 @@ cat > main.cpp <<EOL
  * URL: https://www.acmicpc.net/problem/$PROBLEM_NUMBER
  */
 
-#include "timer.h"
+// #include "timer.h"
 
 /** === Timing ===
 Insert the following timer functions
@@ -41,8 +42,8 @@ stopTimer(start);
 
 EOL
 
-# Create input.txt and output.txt files
-touch input.txt output.txt
+# Create README and I/O files
+touch README.md input.txt output.txt 
 
 echo "Setup completed for BOJ Problem #$PROBLEM_NUMBER"
 
