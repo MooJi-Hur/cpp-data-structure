@@ -1,8 +1,7 @@
 {
     "files.associations": {
         "*.h": "cpp",
-        "iostream": "cpp",
-        "set": "cpp"
+        "iostream": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "editor.formatOnSave": true,
@@ -17,12 +16,12 @@
         "-DCMAKE_CXX_COMPILER=/usr/bin/clang++"
     ],
     "cmake.debugConfig": {
-        "type": "lldb", // lldb 디버거 타입으로 변경
+        "type": "cppdbg", // lldb 디버거 타입으로 변경
         "request": "launch",
         "program": "${command:cmake.launchTargetPath}",
         "args": [],
         "stopAtEntry": false,
-        "cwd": "${workspaceFolder}",
+        "MIMode": "lldb",
         "environment": [],
         "externalConsole": false,
         "setupCommands": [

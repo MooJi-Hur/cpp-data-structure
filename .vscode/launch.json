@@ -2,13 +2,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug cpp-data-structure Project",
+            "name": "cmake-debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/out/build/Clang 16.0.0 x86_64-apple-darwin24.0.0/bin/${input:executableName}",
-            "args": [],
+            "program": "${workspaceFolder}/out/build/default/bin/${input:executableName}",
+            "args": [
+                "<",
+                "input.txt",
+                ">",
+                "output.txt"
+            ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${fileDirname}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb",
@@ -27,7 +32,8 @@
         {
             "id": "executableName",
             "type": "promptString",
-            "description": "Enter the executable name (e.g., Section00/00-02-mainBaic)"
+            "description": "Enter the name of the executable",
+            "default": "A-2309"
         }
     ]
 }
