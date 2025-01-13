@@ -1,27 +1,20 @@
 {
     "files.associations": {
         "*.h": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "set": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "editor.formatOnSave": true,
-    "editor.indentSize": "tabSize",
-    "editor.tabSize": 4,
-    "files.eol": "\r\n",
     "cmake.cmakePath": "cmake",
-    "cmake.buildDirectory": "${workspaceFolder}/out/build/default",
-    "cmake.generator": "Unix Makefiles",
-    "cmake.configureArgs": [
-        "-DCMAKE_C_COMPILER=/usr/bin/clang",
-        "-DCMAKE_CXX_COMPILER=/usr/bin/clang++"
-    ],
+    "cmake.buildDirectory": "${workspaceFolder}/out/build/cmake-config",
     "cmake.debugConfig": {
-        "type": "cppdbg", // lldb 디버거 타입으로 변경
+        "type": "lldb",
         "request": "launch",
         "program": "${command:cmake.launchTargetPath}",
         "args": [],
         "stopAtEntry": false,
-        "MIMode": "lldb",
+        "cwd": "${workspaceFolder}",
         "environment": [],
         "externalConsole": false,
         "setupCommands": [
