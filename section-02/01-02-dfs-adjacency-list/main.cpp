@@ -13,14 +13,15 @@ void printTraversal(vector<int> &resultDfs);
 int main()
 {
     cin >> nodeCount >> edgeCount;
-
     vector<vector<int>> edges(nodeCount, vector<int>(edgeCount));
+
     buildAdjacencyList(edges);
 
     cin >> startNode;
 
     vector<bool> visited(nodeCount, false);
     vector<int> resultDfs;
+
     dfsTraversal(edges, visited, resultDfs);
 
     printTraversal(resultDfs);
@@ -42,7 +43,7 @@ void buildAdjacencyList(vector<vector<int>> &adjacencyList)
 
 void dfsTraversal(vector<vector<int>> &adjacencyList, vector<bool> &visited, vector<int> &resultDfs)
 {
-    stack<int> dfsStack;
+    stack<int> dfsStack; // 깊이 방향으로 조회하므로 동일한 노드가 여러 번 삽일될 수 있음
 
     dfsStack.push(startNode);
 
@@ -52,17 +53,17 @@ void dfsTraversal(vector<vector<int>> &adjacencyList, vector<bool> &visited, vec
         dfsStack.pop();
 
         if (visited[currentNode])
-            continue;
+            continue; // 이미 방문한 노드는 방문 처리를 다시 하지 않음
 
-        visited[currentNode] = true;
+        visited[currentNode] = true; // 스택에서 꺼낸 뒤, 방문 처리
         resultDfs.push_back(currentNode);
 
         for (int neighbor : adjacencyList[currentNode])
         {
-            if (visited[neighbor])
-                continue;
-
-            dfsStack.push(neighbor);
+            if (!visited[neighbor])
+            {
+                dfsStack.push(neighbor);
+            }
         }
     }
 };

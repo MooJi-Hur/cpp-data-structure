@@ -42,23 +42,24 @@ void buildAdjacencyList(vector<vector<int>> &adjacencyList)
 
 void bfsTraversal(vector<vector<int>> &adjacencyList, vector<bool> &visited, vector<int> &resultBfs)
 {
-    queue<int> bfsQueue;
+    queue<int> bfsQueue; // 현재 레벨의 모든 노드 조회, 동일한 노드가 들어가지 못하게 막아야함
 
-    visited[startNode] = true;
+    visited[startNode] = true; // 시작점은 추후 조회하지 않으므로 미리 방문 처리
     bfsQueue.push(startNode);
 
     while (!bfsQueue.empty())
     {
         int currentNode = bfsQueue.front();
+        bfsQueue.pop();
 
         resultBfs.push_back(currentNode);
-        bfsQueue.pop();
 
         for (int neighbor : adjacencyList[currentNode])
         {
+            // 방문하지 않았던 노드만 큐에 추가
             if (!visited[neighbor])
             {
-                visited[neighbor] = true;
+                visited[neighbor] = true; // 노드가 큐에 들어가기 전에 방문 처리
                 bfsQueue.push(neighbor);
             }
         }
