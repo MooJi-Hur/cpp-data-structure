@@ -1,11 +1,6 @@
 {
-    "files.associations": {
-        "*.h": "cpp",
-        "iostream": "cpp",
-        "set": "cpp",
-        "vector": "cpp"
-    },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "C_Cpp.clang_format_style": "file",
     "editor.formatOnSave": true,
     "cmake.cmakePath": "cmake",
     "cmake.buildDirectory": "${workspaceFolder}/out/build/cmake-config",
