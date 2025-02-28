@@ -5,27 +5,83 @@
 
 #include <algorithm>
 #include <iostream>
-#include <regex>
+#include <numeric>
+#include <set>
+#include <stack>
 #include <string>
 #include <vector>
 
 using namespace std;
 
 constexpr int MAX_ORDER = 10000;
+constexpr int SIX_PLACEHOLDER = -1;
+constexpr int MAX_DIGIT_PLACE = 5;
 
-void addMovieTitles(int titleOrder, vector<int> &movieTitles) {
+typedef struct State {
+  int index;
+  vector<int> path;
+} State;
 
-  int movieIndex = 0;
-  while (movieTitles.size() < titleOrder) {
+void fillRemainChars(int digitSize, vector<vector<int>> &titleCandidates) {
+  vector<int> titleLetters(10);
+  iota(titleLetters.begin(), titleLetters.end(), 0);
 
-    string movieTitle = to_string(movieIndex);
+  stack<State> dfsStack;
+  dfsStack.push({0, {}});
 
-    regex title_regex("6{3,}");
-    if (regex_search(movieTitle, title_regex)) {
-      movieTitles.push_back(movieIndex);
+  while (!dfsStack.empty()) {
+    State currentState = dfsStack.top();
+    dfsStack.pop();
+
+    if (currentState.path.size() == digitSize) {
+      titleCandidates.push_back(currentState.path);
+      continue;
     }
-    ++movieIndex;
+
+    for (size_t numberIndex = 0; numberIndex < titleLetters.size();
+         ++numberIndex) {
+      State nextState = currentState;
+      nextState.index = numberIndex + 1;
+      nextState.path.push_back(titleLetters[numberIndex]);
+      dfsStack.push(nextState);
+    }
   }
+}
+
+void addFixedLetter(vector<vector<int>> &titleCandidates,
+                    set<int> &movieTitles) {
+  for (vector<int> &titleCandidate : titleCandidates) {
+    string remainTitle;
+    for (int &titleLetter : titleCandidate) {
+      remainTitle += to_string(titleLetter);
+    }
+    for (size_t letterIndex = 0; letterIndex < titleCandidate.size() + 1;
+         ++letterIndex) {
+      string fullTitle = remainTitle;
+
+      fullTitle.insert(letterIndex, "666");
+
+      int movieTitle = stoi(fullTitle);
+      movieTitles.insert(movieTitle);
+    }
+  }
+}
+
+void addMovieTitles(int titleOrder, set<int> &movieTitles) {
+  vector<vector<int>> titleCandidates;
+
+  for (int digitSize = 1; digitSize < MAX_DIGIT_PLACE; ++digitSize) {
+    fillRemainChars(digitSize, titleCandidates);
+  }
+
+  addFixedLetter(titleCandidates, movieTitles);
+}
+
+void printMovieTitle(int titleOrder, set<int> &movieTitles) {
+  auto titleItor = movieTitles.begin();
+  int movieTitleIndex = titleOrder - 1;
+  advance(titleItor, movieTitleIndex);
+  cout << *titleItor;
 }
 
 int main() {
@@ -33,12 +89,10 @@ int main() {
   int titleOrder = 0;
   cin >> titleOrder;
 
-  vector<int> movieTitles;
+  set<int> movieTitles;
   addMovieTitles(titleOrder, movieTitles);
 
-  sort(movieTitles.begin(), movieTitles.end());
+  printMovieTitle(titleOrder, movieTitles);
 
-  int titleIndex = titleOrder - 1;
-  cout << movieTitles[titleIndex];
   return 0;
 }
