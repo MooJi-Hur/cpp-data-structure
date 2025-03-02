@@ -1,0 +1,3 @@
+- 각 줄 당 100자까지 이므로, 19자리까지 표현할 수 있는 long long의 범위를 넘어섬
+- custom sort를 사용할 수 있는지 묻는 문제
+- 한 줄에 여러 regex 결과를 사용하고 싶다면 regex_iterator를 사용
