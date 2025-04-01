@@ -94,4 +94,5 @@ out/*
 problem-set/*/input.txt
 problem-set/*/output.txt
 
+n/
 # End of https://www.toptal.com/developers/gitignore/api/macos,c++,visualstudiocode
