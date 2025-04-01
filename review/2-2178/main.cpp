@@ -11,30 +11,30 @@
 
 using namespace std;
 
-constexpr char CAN_MOVE = '1';
+constexpr char ROAD = '1';
+constexpr char WALL = '0';
+
 constexpr int DIRECTIONS = 4;
 constexpr pair<int, int> DELTAS[DIRECTIONS] = {
     {-1, 0}, {0, -1}, {1, 0}, {0, 1}};
 
 void readGrid(vector<vector<bool>> &inGrid) {
   for (size_t rowIndex = 0; rowIndex < inGrid.size(); ++rowIndex) {
-    string rows = "";
-    getline(cin >> ws, rows);
-
+    string currentRow;
+    getline(cin >> ws, currentRow);
     for (size_t colIndex = 0; colIndex < inGrid[0].size(); ++colIndex) {
-      inGrid[rowIndex][colIndex] = (rows[colIndex] == CAN_MOVE);
+      inGrid[rowIndex][colIndex] = (currentRow[colIndex] == ROAD);
     }
   }
-}
+};
 
-void searchGrid(vector<vector<bool>> &inGrid, vector<vector<int>> &visited) {
-  queue<pair<int, int>> bfsQueue;
+void countVisitGrid(vector<vector<bool>> &inGrid,
+                    vector<vector<int>> &visitCountGrid) {
 
   pair<int, int> startNode = {0, 0};
-  int endRow = inGrid.size(), endCol = inGrid[0].size();
-
+  queue<pair<int, int>> bfsQueue;
   bfsQueue.push(startNode);
-  visited[0][0]++;
+  visitCountGrid[0][0] = true;
 
   while (!bfsQueue.empty()) {
     auto [currentRow, currentCol] = bfsQueue.front();
@@ -44,21 +44,22 @@ void searchGrid(vector<vector<bool>> &inGrid, vector<vector<int>> &visited) {
       int nextRow = currentRow + deltaRow;
       int nextCol = currentCol + deltaCol;
 
-      bool isInBoundRow = nextRow >= 0 && nextRow < endRow;
-      bool isInBoundCol = nextCol >= 0 && nextCol < endCol;
+      bool isInBoundRow = nextRow >= 0 && nextRow < (int)inGrid.size();
+      bool isInBoundCol = nextCol >= 0 && nextCol < (int)inGrid[0].size();
 
       bool canMove =
           isInBoundRow && isInBoundCol && (inGrid[nextRow][nextCol] == true);
 
-      bool canVisit = canMove && visited[nextRow][nextCol] == 0;
+      bool canVisit = canMove && (visitCountGrid[nextRow][nextCol] == 0);
 
       if (canVisit) {
         bfsQueue.push({nextRow, nextCol});
-        visited[nextRow][nextCol] = visited[currentRow][currentCol] + 1;
+        visitCountGrid[nextRow][nextCol] =
+            visitCountGrid[currentRow][currentCol] + 1;
       }
     }
   }
-}
+};
 
 int main() {
   int rowCount = 0, colCount = 0;
@@ -67,10 +68,10 @@ int main() {
   vector<vector<bool>> inGrid(rowCount, vector<bool>(colCount, false));
   readGrid(inGrid);
 
-  vector<vector<int>> visited(rowCount, vector<int>(colCount, 0));
-  searchGrid(inGrid, visited);
+  vector<vector<int>> visitCountGrid(rowCount, vector<int>(colCount, 0));
+  countVisitGrid(inGrid, visitCountGrid);
 
-  cout << visited[rowCount - 1][colCount - 1];
-
+  int lastRow = rowCount - 1, lastCol = colCount - 1;
+  cout << visitCountGrid[lastRow][lastCol];
   return 0;
 }
