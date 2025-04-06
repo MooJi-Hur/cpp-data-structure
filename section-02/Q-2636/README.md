@@ -1,0 +1,2 @@
+- range_based_for
+- [비트 단위의 저장을 위해 reference 타입 사용](https://en.cppreference.com/w/cpp/container/vector_bool/reference)
