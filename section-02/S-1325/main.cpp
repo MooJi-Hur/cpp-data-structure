@@ -3,63 +3,60 @@
  * URL: https://www.acmicpc.net/problem/1325
  */
 
+#include <array>
 #include <iostream>
-#include <map>
-#include <set>
-#include <stack>
 #include <vector>
 
 using namespace std;
 
-void findRelations(int &computerCount,
-                   int startNode,
-                   map<int, set<int>> &adjacencyList,
-                   map<int, set<int>, greater<int>> &computerDegrees) {
-  stack<int> dfsStack;
-  dfsStack.push(startNode);
+constexpr int MAX_COMPUTER_COUNT = 10000;
+constexpr int MAX_EDGE_COUNT = 100000;
 
-  vector<bool> visited(computerCount + 1);
-
-  int degreeCount = 0;
-
-  while (!dfsStack.empty()) {
-    int currentNode = dfsStack.top();
-    dfsStack.pop();
-
-    if (visited[currentNode]) {
+int calcAdjacencyCount(vector<vector<int>> &adjacencyList,
+                       int &startIndex,
+                       array<bool, MAX_COMPUTER_COUNT + 1> &visited) {
+  int edgeCount = 1;
+  visited[startIndex] = true;
+  for (int node : adjacencyList[startIndex]) {
+    if (visited[node]) {
       continue;
     }
-    visited[currentNode] = true;
-
-    for (int nextNode : adjacencyList[currentNode]) {
-      dfsStack.push(nextNode);
-      adjacencyList[startNode].insert(nextNode);
-      degreeCount++;
-    }
+    edgeCount += calcAdjacencyCount(adjacencyList, node, visited);
   }
-  computerDegrees[degreeCount].insert(startNode);
+
+  return edgeCount;
 };
 
 int main() {
+
   int computerCount = 0, edgeCount = 0;
   cin >> computerCount >> edgeCount;
 
-  map<int, set<int>> adjacencyList;
-  map<int, set<int>, greater<int>> computerDegrees;
-  for (int edgeIndex = 0; edgeIndex < edgeCount; ++edgeIndex) {
+  vector<vector<int>> adjacencyList(MAX_COMPUTER_COUNT + 1);
+
+  for (int computerIndex = 0; computerIndex < edgeCount; ++computerIndex) {
     int computerA = 0, computerB = 0;
     cin >> computerA >> computerB;
-    adjacencyList[computerB].insert(computerA);
+
+    adjacencyList[computerB].push_back(computerA);
   }
 
-  for (auto [key, nodes] : adjacencyList) {
-    findRelations(computerCount, key, adjacencyList, computerDegrees);
+  int maxCount = 0;
+  vector<int> adjacencyCounts(MAX_COMPUTER_COUNT + 1);
+  array<bool, MAX_COMPUTER_COUNT + 1> visited;
+
+  for (int computerIndex = 1; computerIndex <= computerCount; ++computerIndex) {
+    visited.fill(false);
+    adjacencyCounts[computerIndex] =
+        calcAdjacencyCount(adjacencyList, computerIndex, visited);
+
+    maxCount = max(maxCount, adjacencyCounts[computerIndex]);
   }
 
-  auto maxDegreeItor = computerDegrees.begin();
-  for (auto computerIt = maxDegreeItor->second.begin();
-       computerIt != maxDegreeItor->second.end(); ++computerIt) {
-    cout << *computerIt << ' ';
+  for (int computerIndex = 1; computerIndex <= computerCount; ++computerIndex) {
+    if (adjacencyCounts[computerIndex] == maxCount) {
+      cout << computerIndex << ' ';
+    }
   }
 
   return 0;
