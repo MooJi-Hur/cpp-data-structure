@@ -4,76 +4,104 @@
  */
 
 #include <iostream>
-#include <queue>
 #include <utility>
 #include <vector>
 
 using namespace std;
 
-constexpr int DIRECTIONS = 3;
-constexpr pair<int, int> DELTAS[DIRECTIONS] = {{1, 0}, {1, 1}, {0, 1}};
+constexpr int MAX_DAYS = 2000;
+
+constexpr int DIRECTIONS = 4;
+constexpr pair<int, int> DELTAS[DIRECTIONS] = {
+    {-1, 0}, {0, -1}, {0, 1}, {1, 0}};
 
 void readGrid(vector<vector<int>> &inGrid) {
   for (size_t rowIndex = 0; rowIndex < inGrid.size(); ++rowIndex) {
     for (size_t colIndex = 0; colIndex < inGrid[0].size(); ++colIndex) {
-
       cin >> inGrid[rowIndex][colIndex];
     }
   }
 };
 
-void movePeople(pair<int, int> &startNode,
+void movePeople(int &minDiffer,
+                int &maxDiffer,
+                int &sum,
+                pair<int, int> &startNode,
                 vector<vector<int>> &inGrid,
+                vector<pair<int, int>> &unions,
                 vector<vector<bool>> &visited) {
 
-  queue<pair<int, int>> bfsQueue;
-  bfsQueue.push(startNode);
-  visited[startNode.first][startNode.second] = true;
+  auto [startRow, startCol] = startNode;
 
-  while (!bfsQueue.empty()) {
-    auto [currentRow, currentCol] = bfsQueue.front();
-    bfsQueue.pop();
+  for (auto [deltaRow, deltaCol] : DELTAS) {
+    int nextRow = startRow + deltaRow;
+    int nextCol = startCol + deltaCol;
 
-    for (auto [deltaRow, deltaCol] : DELTAS) {
-      int nextRow = currentRow + deltaRow;
-      int nextCol = currentCol + deltaCol;
+    bool isInBoundRow = nextRow >= 0 && nextRow < (int)inGrid.size();
+    bool isInBoundCol = nextCol >= 0 && nextCol < (int)inGrid[0].size();
 
-      bool isInBoundRow = nextRow >= 0 && nextRow < (int)inGrid.size();
-      bool isInBoundCol = nextCol >= 0 && nextCol < (int)inGrid[0].size();
+    if (isInBoundRow && isInBoundCol) {
+      int differ = abs(inGrid[startRow][startCol] - inGrid[nextRow][nextCol]);
 
-      if (isInBoundRow && isInBoundCol) {
+      bool canMove = !visited[nextRow][nextCol] &&
+                     (differ >= minDiffer && differ <= maxDiffer);
+
+      if (canMove) {
+        pair<int, int> nextNode = {nextRow, nextCol};
+        visited[nextRow][nextCol] = true;
+        sum += inGrid[nextRow][nextCol];
+        unions.push_back({nextRow, nextCol});
+        movePeople(minDiffer, maxDiffer, sum, nextNode, inGrid, unions,
+                   visited);
       }
     }
   }
 };
 
 int main() {
+
   int sideLength = 0, minDiffer = 0, maxDiffer = 0;
   cin >> sideLength >> minDiffer >> maxDiffer;
 
   vector<vector<int>> inGrid(sideLength, vector<int>(sideLength, -1));
   readGrid(inGrid);
 
-  int dayCount = -1;
-  bool hasOpenWall = true;
-
-  while (true) {
+  int dayCount = 0;
+  int sum = 0;
+  while (dayCount <= MAX_DAYS) {
+    bool hasUnion = false;
+    vector<pair<int, int>> unions;
+    vector<vector<bool>> visited(sideLength, vector<bool>(sideLength, false));
 
     for (int rowIndex = 0; rowIndex < sideLength; ++rowIndex) {
       for (int colIndex = 0; colIndex < sideLength; ++colIndex) {
-
-        vector<vector<bool>> visited(sideLength,
-                                     vector<bool>(sideLength, false));
-
         pair<int, int> startNode = {rowIndex, colIndex};
-        movePeople(startNode, inGrid, visited);
+
+        if (!visited[rowIndex][colIndex]) {
+          unions.clear();
+          visited[rowIndex][colIndex] = true;
+          sum = inGrid[rowIndex][colIndex];
+          unions.push_back(startNode);
+          movePeople(minDiffer, maxDiffer, sum, startNode, inGrid, unions,
+                     visited);
+
+          if (unions.size() == 1) {
+            continue;
+          }
+
+          int avg = sum / unions.size();
+          for (auto [unionRow, unionCol] : unions) {
+            inGrid[unionRow][unionCol] = avg;
+            hasUnion = true;
+          }
+        }
       }
     }
 
-    dayCount++;
-    if (!hasOpenWall) {
+    if (!hasUnion) {
       break;
     }
+    dayCount++;
   }
 
   cout << dayCount;
