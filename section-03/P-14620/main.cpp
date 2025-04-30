@@ -3,89 +3,117 @@
  * URL: https://www.acmicpc.net/problem/14620
  */
 
+#include <climits>
 #include <iostream>
 #include <utility>
 #include <vector>
 
 using namespace std;
 
-constexpr int MAX_COST = 987654321;
+constexpr int MAX_SEED_COUNT = 3;
 
-constexpr bool FLOWER = true;
-constexpr bool LOAD = false;
-
-constexpr int SEED_COUNT = 3;
-
-constexpr int DIRECTIONS = 4;
+constexpr int DIRECTIONS = 5;
 constexpr pair<int, int> DELTAS[DIRECTIONS] = {
-    {-1, 0}, {0, -1}, {1, 0}, {0, 1}};
+    {0, 0}, {-1, 0}, {0, -1}, {1, 0}, {0, 1}};
 
-void readGrid(vector<vector<int>> &inGrid) {
-  for (size_t rowIndex = 0; rowIndex < inGrid.size(); ++rowIndex) {
-    for (size_t colIndex = 0; colIndex < inGrid[0].size(); ++colIndex) {
-      cin >> inGrid[rowIndex][colIndex];
+void readPrices(vector<vector<int>> &prices) {
+
+  for (size_t rowIndex = 0; rowIndex < prices.size(); ++rowIndex) {
+    for (size_t colIndex = 0; colIndex < prices[0].size(); ++colIndex) {
+      cin >> prices[rowIndex][colIndex];
     }
   }
 };
 
-void calcCosts(int &minCost,
-               pair<int, int> &startPoint,
-               vector<vector<int>> &inGrid,
-               vector<pair<int, int>> &seedsCandidate) {
+bool canPlant(pair<int, int> &currentPoint, vector<vector<bool>> &visited) {
 
-  if (seedsCandidate.size() == SEED_COUNT) {
-    int localCost = 0;
-    for (auto [seedRow, seedCol] : seedsCandidate) {
-      int unitPrice = inGrid[seedRow][seedCol];
-      localCost += unitPrice;
-      cout << seedRow << ' ' << seedCol << ' ' << unitPrice << ' ' << localCost
-           << '\n';
+  auto [currentRow, currentCol] = currentPoint;
+  for (auto [deltaRow, deltaCol] : DELTAS) {
+    int nextRow = currentRow + deltaRow;
+    int nextCol = currentCol + deltaCol;
+
+    bool isOutRow = nextRow < 0 || nextRow >= (int)visited.size();
+    bool isOutCol = nextCol < 0 || nextCol >= (int)visited[0].size();
+
+    if (isOutRow || isOutCol) {
+      return false;
     }
-    cout << seedsCandidate.size() << '\n';
 
-    minCost = min(minCost, localCost);
+    if (visited[nextRow][nextCol]) {
+      return false;
+    }
+  }
+  return true;
+};
+
+int plantFlower(pair<int, int> currentPoint,
+                vector<vector<int>> &prices,
+                vector<vector<bool>> &visited) {
+  auto [currentRow, currentCol] = currentPoint;
+  int cost = 0;
+
+  for (auto [deltaRow, deltaCol] : DELTAS) {
+    int nextRow = currentRow + deltaRow;
+    int nextCol = currentCol + deltaCol;
+
+    visited[nextRow][nextCol] = true;
+    cost += prices[nextRow][nextCol];
+  }
+  return cost;
+};
+
+void removeFlower(pair<int, int> currentPoint, vector<vector<bool>> &visited) {
+  auto [currentRow, currentCol] = currentPoint;
+
+  for (auto [deltaRow, deltaCol] : DELTAS) {
+    int nextRow = currentRow + deltaRow;
+    int nextCol = currentCol + deltaCol;
+
+    visited[nextRow][nextCol] = false;
+  }
+};
+
+void calcPrice(int &minPrice,
+               int flowerCount,
+               int sumPrice,
+               vector<vector<int>> &prices,
+               vector<vector<bool>> &visited) {
+
+  if (flowerCount == MAX_SEED_COUNT) {
+    minPrice = min(minPrice, sumPrice);
+
     return;
   }
 
-  auto [startRow, startCol] = startPoint;
+  for (size_t rowIndex = 1; rowIndex < visited.size() - 1; ++rowIndex) {
+    for (size_t colIndex = 1; colIndex < visited[0].size() - 1; ++colIndex) {
 
-  for (size_t rowIndex = startRow + 1; rowIndex < inGrid.size(); ++rowIndex) {
-    for (size_t colIndex = startCol + 1; colIndex < inGrid[0].size();
-         ++colIndex) {
       pair<int, int> currentPoint = {rowIndex, colIndex};
-
-      for (auto [seedRow, seedCol] : seedsCandidate) {
-        bool canSeed = seedRow != rowIndex || seedCol != colIndex;
-
-        break;
+      if (canPlant(currentPoint, visited)) {
+        int cost = plantFlower(currentPoint, prices, visited);
+        calcPrice(minPrice, flowerCount + 1, sumPrice + cost, prices, visited);
+        removeFlower(currentPoint, visited);
       }
-      seedsCandidate.push_back(currentPoint);
-      calcCosts(minCost, currentPoint, inGrid, seedsCandidate);
-      seedsCandidate.pop_back();
     }
   }
-
-  return;
 };
 
 int main() {
+  int sideSize = 0;
+  cin >> sideSize;
 
-  int sideLength = 0;
-  cin >> sideLength;
+  vector<vector<int>> prices(sideSize, vector<int>(sideSize, 0));
+  readPrices(prices);
 
-  vector<vector<int>> inGrid(sideLength, vector<int>(sideLength));
-  readGrid(inGrid);
+  int minPrice = INT_MAX;
 
-  int minCost = MAX_COST;
-  pair<int, int> startPoint = {1, 1};
-  vector<pair<int, int>> seedsCandidate;
-  calcCosts(minCost, startPoint, inGrid, seedsCandidate);
+  int initFlowerCount = 0;
+  int initSumPrice = 0;
 
-  //   for (auto row : inGrid) {
-  //     for (auto cell : row) {
-  //       cout << cell << ' ';
-  //     }
-  //     cout << '\n';
-  //   }
+  vector<vector<bool>> visited(sideSize, vector<bool>(sideSize, false));
+
+  calcPrice(minPrice, initFlowerCount, initSumPrice, prices, visited);
+
+  cout << minPrice;
   return 0;
-};
+}
