@@ -3,180 +3,136 @@
  * URL: https://www.acmicpc.net/problem/17471
  */
 
-#include <algorithm>
+#include <climits>
 #include <iostream>
-#include <map>
-#include <queue>
+#include <utility>
 #include <vector>
 
 using namespace std;
 
-constexpr int NO_GROUP = -1;
-constexpr int MAX_DIFFERENCE = 100 * 10 + 1;
+int blockSize = 0;
 
-void readCity(const int regionCount,
-              vector<int> &populations,
-              map<int, vector<int>> &allNeighbors) {
+vector<int> populations;
+vector<vector<int>> neighbors;
 
-  for (int regionIndex = 1; regionIndex <= regionCount; ++regionIndex) {
-    cin >> populations[regionIndex];
+//
+
+int minDiffer = INT_MAX;
+constexpr int OUT_OF_RESULT = -1;
+
+//
+vector<bool> unionNames;
+constexpr bool UNION_A = false;
+constexpr bool UNION_B = true;
+
+vector<int> visited;
+
+void readPopulations() {
+  populations.resize(blockSize + 1, 0);
+
+  for (int blockIndex = 1; blockIndex <= blockSize; ++blockIndex) {
+    cin >> populations[blockIndex];
   }
+};
 
-  for (int regionIndex = 1; regionIndex <= regionCount; ++regionIndex) {
-    int neighborCount = 0;
-    cin >> neighborCount;
-    vector<int> neighbors(neighborCount);
-    for (int neighborIndex = 0; neighborIndex < neighborCount;
-         ++neighborIndex) {
-      cin >> neighbors[neighborIndex];
+void readNeighbors() {
+  neighbors.resize(blockSize + 1);
+
+  for (int blockIndex = 1; blockIndex <= blockSize; ++blockIndex) {
+    int neighborSize = 0;
+    cin >> neighborSize;
+
+    for (int neighborCount = 0; neighborCount < neighborSize; ++neighborCount) {
+      int neighborIndex = 0;
+      cin >> neighborIndex;
+      neighbors[blockIndex].push_back(neighborIndex);
     }
-
-    allNeighbors[regionIndex] = neighbors;
   }
-}
+};
 
-void searchRegionPath(const int startIndex,
-                      vector<bool> &visited,
-                      map<int, vector<int>> &allNeighbors) {
-  queue<int> bfsQueue;
-  bfsQueue.push(startIndex);
-  visited[startIndex] = true;
+pair<int, int> calcUnion(int currentIndex, bool unionName) {
+  visited[currentIndex] = true;
 
-  while (!bfsQueue.empty()) {
+  int connectedCount = 1;
+  int sumPopulation = populations[currentIndex];
 
-    int currentRegion = bfsQueue.front();
-    bfsQueue.pop();
+  for (int neighborIndex : neighbors[currentIndex]) {
+    bool needVisit = visited[neighborIndex] == false;
+    bool isSameUnion = unionNames[neighborIndex] == unionName;
 
-    for (size_t neighborIndex = 0;
-         neighborIndex < allNeighbors[currentRegion].size(); ++neighborIndex) {
-      int nextRegion = allNeighbors[currentRegion][neighborIndex];
-      if (!visited[nextRegion]) {
-        visited[nextRegion] = true;
-        bfsQueue.push(nextRegion);
+    if (needVisit && isSameUnion) {
+
+      auto [neighborCount, neighborPopulation] =
+          calcUnion(neighborIndex, unionName);
+
+      connectedCount += neighborCount;
+      sumPopulation += neighborPopulation;
+    }
+  }
+
+  pair<int, int> updatedUnion = {connectedCount, sumPopulation};
+  return updatedUnion;
+};
+
+void buildUnions() {
+  unionNames.resize(blockSize + 1, false);
+
+  for (int combiIndex = 1; combiIndex <= (1 << blockSize); ++combiIndex) {
+
+    visited.clear();
+    visited.resize(blockSize + 1, false);
+
+    int aStartIndex = -1, bStartIndex = -1;
+
+    for (int blockIndex = 1; blockIndex <= blockSize; ++blockIndex) {
+      bool unionName = combiIndex & (1 << (blockIndex - 1));
+      unionNames[blockIndex] = unionName;
+
+      if (unionName == UNION_A) {
+        aStartIndex = blockIndex;
+      } else {
+        bStartIndex = blockIndex;
       }
     }
-  }
-}
 
-void getDifference(vector<int> &populations,
-                   int &minDifference,
-                   vector<int> &firstGroup,
-                   vector<int> &secondGroup) {
+    bool isOneUnion = aStartIndex == -1 || bStartIndex == -1;
 
-  int firstGroupPopulation = 0;
-  int secondGroupPopulation = 0;
-
-  for (const int region : firstGroup) {
-    firstGroupPopulation += populations[region];
-  }
-
-  for (const int region : secondGroup) {
-    secondGroupPopulation += populations[region];
-  }
-
-  int currentDifference = abs(firstGroupPopulation - secondGroupPopulation);
-
-  if (currentDifference < minDifference) {
-    minDifference = currentDifference;
-  }
-}
-
-void validateNeighbors(vector<int> &group,
-                       map<int, vector<int>> &neighbors,
-                       map<int, vector<int>> allNeighbors) {
-
-  for (auto &[region, initNeighbors] : allNeighbors) {
-    for (int regionName : group) {
-
-      if (find(initNeighbors.begin(), initNeighbors.end(), regionName) !=
-          initNeighbors.end()) {
-
-        neighbors[region].push_back(regionName);
-      }
-    }
-  }
-}
-
-void validateEachGroup(const int regionCount,
-                       int &minDifference,
-                       map<int, vector<int>> &allNeighbors,
-                       vector<int> &populations) {
-  int groupCount = 1 << regionCount;
-  int uniqueGroupCount = groupCount >> 1;
-
-  bool isMinDifference = false;
-  for (int groupIndex = 0; groupIndex < uniqueGroupCount; ++groupIndex) {
-    vector<int> firstGroup;
-    vector<int> secondGroup;
-
-    for (int regionIndex = 0; regionIndex < regionCount; ++regionIndex) {
-      int regionName = regionIndex + 1;
-      bool groupName = groupIndex & (1 << regionIndex);
-      groupName ? firstGroup.push_back(regionName)
-                : secondGroup.push_back(regionName);
-    }
-
-    if (firstGroup.empty() || secondGroup.empty()) {
+    if (isOneUnion) {
       continue;
     }
 
-    vector<bool> firstGroupVisited(regionCount + 1, false);
-    vector<bool> secondGroupVisited(regionCount + 1, false);
+    pair<int, int> unionA = calcUnion(aStartIndex, UNION_A);
+    pair<int, int> unionB = calcUnion(bStartIndex, UNION_B);
 
-    map<int, vector<int>> firstNeighbors;
-    map<int, vector<int>> secondNeighbors;
+    auto [connectedCountA, sumPopulationA] = unionA;
+    auto [connectedCoundB, sumPopulationB] = unionB;
 
-    validateNeighbors(firstGroup, firstNeighbors, allNeighbors);
-    validateNeighbors(secondGroup, secondNeighbors, allNeighbors);
+    bool isGroupTwo = connectedCountA + connectedCoundB == blockSize;
 
-    int subFirstGroupCount = 0, subSecondGroupCount = 0;
-    for (size_t regionIndex = 0; regionIndex < firstGroup.size();
-         ++regionIndex) {
-      int regionName = firstGroup[regionIndex];
-      if (!firstGroupVisited[regionName]) {
-        subFirstGroupCount++;
-        searchRegionPath(regionName, firstGroupVisited, firstNeighbors);
-      }
-    }
-    for (size_t regionIndex = 0; regionIndex < secondGroup.size();
-         ++regionIndex) {
-      int regionName = secondGroup[regionIndex];
-      if (!secondGroupVisited[regionName]) {
-        subSecondGroupCount++;
-        searchRegionPath(regionName, secondGroupVisited, secondNeighbors);
-      }
+    if (!isGroupTwo) {
+      continue;
     }
 
-    bool isLocalMinDifference =
-        subFirstGroupCount == 1 && subSecondGroupCount == 1;
+    int currentDiffer = abs(sumPopulationA - sumPopulationB);
 
-    if (isLocalMinDifference) {
-      isMinDifference = true;
-      getDifference(populations, minDifference, firstGroup, secondGroup);
-    }
+    minDiffer = min(minDiffer, currentDiffer);
   }
-
-  if (!isMinDifference) {
-    minDifference = NO_GROUP;
-  }
-}
+};
 
 int main() {
 
-  int regionCount = 0;
-  cin >> regionCount;
+  cin >> blockSize;
 
-  vector<int> populations(regionCount + 1);
-  map<int, vector<int>> allNeighbors;
-  readCity(regionCount, populations, allNeighbors);
+  readPopulations();
+  readNeighbors();
 
-  int minDifference = MAX_DIFFERENCE;
-  validateEachGroup(regionCount, minDifference, allNeighbors, populations);
+  buildUnions();
 
-  if (minDifference == MAX_DIFFERENCE) {
-    minDifference = NO_GROUP;
+  if (minDiffer == INT_MAX) {
+    cout << OUT_OF_RESULT;
+  } else {
+    cout << minDiffer;
   }
 
-  cout << minDifference;
   return 0;
 }
