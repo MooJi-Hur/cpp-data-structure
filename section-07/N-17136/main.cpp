@@ -6,128 +6,139 @@
 #include <array>
 #include <climits>
 #include <iostream>
-#include <utility>
+#include <numeric>
 
 using namespace std;
 
+// in
+constexpr int ATTACHABLE = 1;
+constexpr int EMPTY_CELL = 0;
+
 constexpr int SIDE_SIZE = 10;
-constexpr int MAX_BLOCK_SIZE = 5;
+constexpr int SQUARE_SIZE = SIDE_SIZE * SIDE_SIZE;
+array<array<int, SIDE_SIZE>, SIDE_SIZE> inBoard;
 
-array<int, MAX_BLOCK_SIZE + 1> blockCount;
+// out
+int minSumPaper = INT_MAX;
+constexpr int OUT_OF_RESULT = -1;
 
-void readGrid(array<array<int, SIDE_SIZE>, SIDE_SIZE> &inGrid) {
-  for (auto &row : inGrid) {
+// logic
+constexpr int PAPER_TYPES = 5;
+constexpr int MAX_PAPER_COUNT = 5;
+array<int, PAPER_TYPES + 1> paperCounts{};
+
+void readBoard() {
+  for (auto &row : inBoard) {
     for (auto &cell : row) {
       cin >> cell;
     }
   }
 };
 
-bool canAdd(int &blockSize,
-            pair<int, int> currentPoint,
-            array<array<int, SIDE_SIZE>, SIDE_SIZE> &inGrid) {
-
-  auto [currentRow, currentCol] = currentPoint;
-
-  bool isOutBound = currentRow + blockSize > (int)inGrid.size() ||
-                    currentCol + blockSize > (int)inGrid[0].size();
-
-  if (isOutBound) {
+bool canAttatch(int startRow, int startCol, int paperSize) {
+  if (paperCounts[paperSize] >= MAX_PAPER_COUNT) {
     return false;
   }
-  for (int rowIndex = currentRow; rowIndex < currentRow + blockSize;
-       ++rowIndex) {
-    for (int colIndex = currentCol; colIndex < currentCol + blockSize;
-         ++colIndex) {
 
-      bool isEmpty = inGrid[rowIndex][colIndex] == 0;
+  int rowSize = startRow + paperSize;
+  int colSize = startCol + paperSize;
 
-      if (isEmpty) {
+  if (rowSize > SIDE_SIZE || colSize > SIDE_SIZE) {
+    return false;
+  }
+
+  for (int rowIndex = startRow; rowIndex < rowSize; ++rowIndex) {
+    for (int colIndex = startCol; colIndex < colSize; ++colIndex) {
+      int currentCell = inBoard[rowIndex][colIndex];
+
+      if (currentCell == EMPTY_CELL) {
         return false;
       }
     }
   }
-
   return true;
 };
 
-void controlBlock(int isDetach,
-                  int &blockSize,
-                  pair<int, int> currentPoint,
-                  array<array<int, SIDE_SIZE>, SIDE_SIZE> &inGrid) {
-  auto [currentRow, currentCol] = currentPoint;
+void setPapers(bool isDetach, int startRow, int startCol, int paperSize) {
 
-  for (int rowIndex = currentRow; rowIndex < currentRow + blockSize;
-       ++rowIndex) {
-    for (int colIndex = currentCol; colIndex < currentCol + blockSize;
-         ++colIndex) {
-      inGrid[rowIndex][colIndex] = isDetach ? 1 : 0;
+  int rowSize = startRow + paperSize;
+  int colSize = startCol + paperSize;
+
+  for (int rowIndex = startRow; rowIndex < rowSize; ++rowIndex) {
+    for (int colIndex = startCol; colIndex < colSize; ++colIndex) {
+      int currentCell = inBoard[rowIndex][colIndex];
+
+      inBoard[rowIndex][colIndex] = isDetach ? ATTACHABLE : EMPTY_CELL;
     }
   }
+
+  for (auto &row : inBoard) {
+    for (auto &cell : row) {
+      cout << cell << ' ';
+    }
+    cout << '\n';
+  }
+  cout << '\n';
 };
 
-void addBlock(int &minCount,
-              int attachCount,
-              pair<int, int> currentPoint,
-              array<array<int, SIDE_SIZE>, SIDE_SIZE> &inGrid) {
+void testPapers(int currentIndex) {
+  int currentRow = currentIndex / SIDE_SIZE;
+  int currentCol = currentIndex % SIDE_SIZE;
 
-  if (attachCount >= minCount) {
+  int currentCell = inBoard[currentRow][currentCol];
+
+  int nextIndex = currentIndex + 1;
+
+  if (currentCell == EMPTY_CELL) {
+    testPapers(nextIndex);
+    return;
+  } else {
+    // cout << currentIndex << '\n';
+    // cout << currentRow << ' ' << currentCol << '\n';
+  }
+
+  int sumPaper = accumulate(paperCounts.begin(), paperCounts.end(), 0);
+
+  if (sumPaper >= minSumPaper) {
+    cout << '\n';
     return;
   }
 
-  auto [currentRow, currentCol] = currentPoint;
-  pair<int, int> nextPoint;
+  if (currentIndex >= SQUARE_SIZE) {
 
-  if (currentRow == SIDE_SIZE) {
-    minCount = min(minCount, attachCount);
-
+    minSumPaper = min(minSumPaper, sumPaper);
+    cout << '\n';
     return;
   }
 
-  if (currentCol == SIDE_SIZE) {
-    nextPoint = {currentRow + 1, 0};
-    addBlock(minCount, attachCount, nextPoint, inGrid);
-    return;
-  }
+  for (int paperSize = PAPER_TYPES; paperSize > 0; --paperSize) {
 
-  if (inGrid[currentRow][currentCol] == 0) {
-    nextPoint = {currentRow, currentCol + 1};
-    addBlock(minCount, attachCount, nextPoint, inGrid);
-    return;
-  }
+    if (canAttatch(currentRow, currentCol, paperSize)) {
+      cout << paperSize << ' ' << currentIndex << '\n';
 
-  for (int blockSize = MAX_BLOCK_SIZE; blockSize > 0; --blockSize) {
-    if (canAdd(blockSize, currentPoint, inGrid)) {
-      if (blockCount[blockSize] == 0) {
-        return;
-      }
+      paperCounts[paperSize]++;
+      setPapers(false, currentRow, currentCol, paperSize);
 
-      blockCount[blockSize]--;
-      controlBlock(false, blockSize, currentPoint, inGrid);
+      nextIndex = currentIndex + paperSize;
+      testPapers(nextIndex);
 
-      nextPoint = {currentRow, currentCol + blockSize};
-      addBlock(minCount, attachCount + 1, nextPoint, inGrid);
-
-      controlBlock(true, blockSize, currentPoint, inGrid);
-      blockCount[blockSize]++;
+      paperCounts[paperSize]--;
+      setPapers(true, currentRow, currentCol, paperSize);
     }
   }
 };
 
 int main() {
-  array<array<int, SIDE_SIZE>, SIDE_SIZE> inGrid;
-  readGrid(inGrid);
 
-  int minCount = INT_MAX;
-  int attachCount = 0;
-  pair<int, int> startPoint = {0, 0};
-  blockCount.fill(5);
-  addBlock(minCount, attachCount, startPoint, inGrid);
+  readBoard();
 
-  if (minCount == INT_MAX) {
-    cout << -1;
+  int startIndex = 0;
+  testPapers(startIndex);
+
+  if (minSumPaper == INT_MAX) {
+    cout << OUT_OF_RESULT;
   } else {
-    cout << minCount;
+    cout << minSumPaper;
   }
 
   return 0;
