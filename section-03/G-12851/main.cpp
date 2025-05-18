@@ -21,27 +21,16 @@ constexpr int MAX_POSITION = 100000;
 array<int, MAX_POSITION + 1> visited{};
 array<int, MAX_POSITION + 1> routeCounts{};
 
-int minTime = INT_MAX;
+constexpr int START_COUNT = 1;
 
 // logic
 constexpr int WAYS = 3;
 
-int getNextPosition(int wayIndex, int currentIndex) {
-  if (wayIndex == 0) {
-    return currentIndex + 1;
-  } else if (wayIndex == 1) {
-    return currentIndex - 1;
-  } else if (wayIndex == 2) {
-    return currentIndex * 2;
-  } else {
-    return 0;
-  }
-}
-
 void findFamily() {
   queue<int> bfsQueue;
   bfsQueue.push(startPosition);
-  visited[startPosition] = 0;
+  visited[startPosition] = START_COUNT;
+  routeCounts[startPosition] = 1;
 
   while (!bfsQueue.empty()) {
     int currentPosition = bfsQueue.front();
@@ -51,23 +40,20 @@ void findFamily() {
       break;
     }
 
-    for (int wayIndex = 0; wayIndex < WAYS; ++wayIndex) {
-      int nextPosition = getNextPosition(wayIndex, currentPosition);
+    for (int nextPosition :
+         {currentPosition + 1, currentPosition - 1, currentPosition * 2}) {
 
       bool isInBound = nextPosition >= 0 && nextPosition <= MAX_POSITION;
 
-      bool canMoveNext = isInBound && (visited[nextPosition] == 0);
-      bool isEndPosition = isInBound && (nextPosition == endPosition);
+      if (isInBound) {
+        if (!visited[nextPosition]) {
+          bfsQueue.push(nextPosition);
+          visited[nextPosition] += visited[currentPosition] + 1;
+          routeCounts[nextPosition] += routeCounts[currentPosition];
 
-      if (canMoveNext) {
-        bfsQueue.push(nextPosition);
-        visited[nextPosition] += visited[currentPosition] + 1;
-      }
-
-      if (isEndPosition) {
-        int timeCount = visited[endPosition];
-        minTime = min(minTime, timeCount);
-        routeCounts[timeCount]++;
+        } else if (visited[nextPosition] == visited[currentPosition] + 1) {
+          routeCounts[nextPosition] += routeCounts[currentPosition];
+        }
       }
     }
   }
@@ -77,8 +63,15 @@ int main() {
 
   cin >> startPosition >> endPosition;
 
-  findFamily();
+  if (startPosition == endPosition) {
+    cout << 0 << '\n' << 1;
 
-  cout << minTime << '\n' << routeCounts[minTime];
+  } else {
+    findFamily();
+
+    cout << visited[endPosition] - START_COUNT << '\n'
+         << routeCounts[endPosition];
+  }
+
   return 0;
 }
