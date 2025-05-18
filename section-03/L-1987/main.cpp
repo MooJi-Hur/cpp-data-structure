@@ -51,7 +51,6 @@ void go(int cellCount, pair<int, int> currentPoint) {
         nextRow < 0 || nextRow >= rowSize || nextCol < 0 || nextCol >= colSize;
 
     if (isOutBound) {
-
       continue;
     }
 
