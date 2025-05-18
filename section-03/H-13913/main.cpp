@@ -3,10 +3,10 @@
  * URL: https://www.acmicpc.net/problem/13913
  */
 
+#include <algorithm>
 #include <array>
 #include <climits>
 #include <iostream>
-#include <map>
 #include <queue>
 #include <vector>
 
@@ -21,14 +21,14 @@ constexpr int MAX_POSITION = 100000;
 // out
 int minTime = INT_MAX;
 array<int, MAX_POSITION + 1> visited{};
-map<int, vector<int>> routes;
+array<int, MAX_POSITION + 1> history{};
+vector<int> routes;
 
 void findFamily() {
   queue<int> bfsQueue;
 
   bfsQueue.push(startPoint);
   visited[startPoint] = 1;
-  routes[startPoint].push_back(startPoint);
 
   while (!bfsQueue.empty()) {
     int currentPosition = bfsQueue.front();
@@ -47,11 +47,8 @@ void findFamily() {
 
       bfsQueue.push(nextPosition);
       visited[nextPosition] = visited[currentPosition] + 1;
-      routes[nextPosition] = routes[currentPosition];
-
-      routes[nextPosition].push_back(nextPosition);
+      history[nextPosition] = currentPosition;
     }
-    routes[currentPosition].clear();
   }
 };
 
@@ -64,17 +61,17 @@ int main() {
   } else {
     findFamily();
 
-    for (auto [key, row] : routes) {
-      cout << key << " : ";
-      for (auto cell : row) {
-        cout << cell << ' ';
-      }
-      cout << '\n';
-    }
-
     cout << visited[endPoint] - 1 << '\n';
 
-    for (int position : routes[endPoint]) {
+    for (int routeIndex = endPoint; routeIndex != startPoint;
+         routeIndex = history[routeIndex]) {
+      routes.push_back(history[routeIndex]);
+    }
+
+    reverse(routes.begin(), routes.end());
+    routes.push_back(endPoint);
+
+    for (int position : routes) {
       cout << position << ' ';
     }
   }
