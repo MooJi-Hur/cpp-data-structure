@@ -10,89 +10,95 @@
 
 using namespace std;
 
-constexpr int MAX_ADD_ROW = 3;
-constexpr int INVALID_RESULT = -1;
+// in
+int rowSize = 0, colSize = 0, preRowSize = 0;
 
-int rowSize = 0, colSize = 0, presetRowSize = 0;
+// out
+int minAddedRow = INT_MAX;
 
-void readLadder(int &presetRowSize, vector<vector<bool>> &ladder) {
-  for (int presetIndex = 0; presetIndex < presetRowSize; ++presetIndex) {
-    int rowIndex = 0, spanIndex = 0;
-    cin >> rowIndex >> spanIndex;
-    ladder[rowIndex][spanIndex] = true;
+constexpr int MAX_ADDED_ROW = 3;
+constexpr int NO_RESULT = -1;
+
+// logic
+vector<vector<bool>> ladder;
+
+void readPreRow() {
+  ladder.resize(rowSize + 1, vector<bool>(colSize + 1, false));
+
+  for (int preRowIndex = 0; preRowIndex < preRowSize; ++preRowIndex) {
+    int rowIndex = 0, colIndex = 0;
+    cin >> rowIndex >> colIndex;
+
+    ladder[rowIndex][colIndex] = 1;
   }
 };
 
-bool validateLadder(vector<vector<bool>> &ladder) {
+bool validateLadder() {
 
-  for (int spanIndex = 1; spanIndex <= colSize; ++spanIndex) {
-    int startCol = spanIndex;
+  for (int colIndex = 1; colIndex <= colSize; ++colIndex) {
+    int startCol = colIndex;
+
     for (int rowIndex = 1; rowIndex <= rowSize; ++rowIndex) {
-      if (ladder[rowIndex][spanIndex] == true) {
+      if (ladder[rowIndex][startCol]) {
         startCol++;
-      }
-
-      if (ladder[rowIndex][spanIndex - 1] == true) {
+      } else if (ladder[rowIndex][startCol - 1]) {
         startCol--;
       }
     }
-    if (startCol != spanIndex) {
+
+    if (startCol != colIndex) {
       return false;
     }
   }
+
   return true;
 };
 
-void controlLadder(int &minCount,
-                   int currentCount,
-                   pair<int, int> currentPosition,
-                   vector<vector<bool>> &ladder) {
+void controlLadder(int currentRow, int currentCol, int currentCount) {
 
-  if (currentCount >= minCount || currentCount > MAX_ADD_ROW) {
+  bool isOutOfLimit = currentCount > MAX_ADDED_ROW;
+  bool isOutOfMin = currentCount >= minAddedRow;
+
+  if (isOutOfLimit || isOutOfMin) {
     return;
   }
 
-  if (validateLadder(ladder)) {
-    minCount = min(minCount, currentCount);
+  if (validateLadder()) {
+    minAddedRow = min(minAddedRow, currentCount);
+
     return;
   }
 
-  auto [currentRow, currentSpan] = currentPosition;
+  for (int nextRow = currentRow; nextRow <= rowSize; ++nextRow) {
+    for (int nextCol = 1; nextCol < colSize; ++nextCol) {
+      bool isInvalidRow = ladder[nextRow][nextCol] ||
+                          (nextCol > 1 && ladder[nextRow][nextCol - 1]) ||
+                          (nextCol < colSize && ladder[nextRow][nextCol + 1]);
 
-  for (int rowIndex = currentRow; rowIndex <= rowSize; ++rowIndex) {
-
-    for (int spanIndex = 1; spanIndex < colSize; ++spanIndex) {
-      bool currentLine = ladder[rowIndex][spanIndex];
-      bool rightLine = ladder[rowIndex][spanIndex + 1];
-      bool leftLine = ladder[rowIndex][spanIndex - 1];
-
-      if (currentLine || rightLine || leftLine) {
+      if (isInvalidRow)
         continue;
-      }
-      ladder[rowIndex][spanIndex] = true;
-      pair<int, int> nextPosition = {rowIndex, spanIndex};
-      controlLadder(minCount, currentCount + 1, nextPosition, ladder);
-      ladder[rowIndex][spanIndex] = false;
+
+      ladder[nextRow][nextCol] = true;
+      controlLadder(nextRow, nextCol, currentCount + 1);
+      ladder[nextRow][nextCol] = false;
     }
   }
 };
 
 int main() {
 
-  cin >> colSize >> presetRowSize >> rowSize;
+  cin >> colSize >> preRowSize >> rowSize;
 
-  vector<vector<bool>> ladder(rowSize + 2, vector<bool>(colSize + 2, false));
-  readLadder(presetRowSize, ladder);
+  readPreRow();
 
-  int minCount = INT_MAX;
+  int startRow = 1;
   int initCount = 0;
-  pair<int, int> startPosition = {1, 0};
-  controlLadder(minCount, initCount, startPosition, ladder);
+  controlLadder(startRow, 1, initCount);
 
-  if (minCount == INT_MAX) {
-    cout << INVALID_RESULT;
+  if (minAddedRow == INT_MAX) {
+    cout << NO_RESULT;
   } else {
-    cout << minCount;
+    cout << minAddedRow;
   }
 
   return 0;
