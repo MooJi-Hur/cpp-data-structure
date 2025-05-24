@@ -16,94 +16,67 @@ int startPoint = 0, endPoint = 0;
 // out
 constexpr int OUT_OF_RESULT = -1;
 constexpr int MAX_POSITION = 500000;
-int timeCount = 0;
+
+int minTime = INT_MAX;
 
 // logic
-array<int, MAX_POSITION + 1> levelCounts;
-vector<int> endPoints;
+array<array<bool, MAX_POSITION + 1>, 2> visited{}; // timeCount % 2
 
-void initPositions() { cin >> startPoint >> endPoint; };
-
-void fillEndCandidates() {
-  int prevPoint = 0;
-  for (int addPoint = 1; endPoint <= 500000; ++addPoint) {
-    prevPoint += addPoint;
-    endPoints.push_back(endPoint + prevPoint);
-  }
-
-  for (auto cell : endPoints) {
-    cout << cell << '\n';
-  }
-};
-
-void findGoal() {
-  queue<int> bfsQueue;
-
-  bfsQueue.push(startPoint);
-
-  while (!bfsQueue.empty() && endPoint <= MAX_POSITION) {
-    int currentPoint = bfsQueue.front();
-    bfsQueue.pop();
-
-    if (currentPoint == endPoint) {
-      return;
-    }
-
-    bool isOutPoint = currentPoint < 0 || currentPoint > MAX_POSITION ||
-                      endPoint > MAX_POSITION;
-    if (isOutPoint) {
-      timeCount = 0;
-      return;
-    }
-
-    for (int nextPoint :
-         {currentPoint - 1, currentPoint + 1, currentPoint * 2}) {
-
-      bool isInBound = nextPoint >= 0 && nextPoint <= MAX_POSITION;
-
-      if (isInBound) {
-        bool needRevisit = nextPoint >= endPoint && levelCounts[nextPoint] != 0;
-        bool canMoveNext = levelCounts[nextPoint] == 0;
-
-        if (needRevisit || canMoveNext) {
-          bfsQueue.push(nextPoint);
-        }
-
-        if (canMoveNext) {
-          bfsQueue.push(nextPoint);
-          levelCounts[nextPoint] = levelCounts[currentPoint] + 1;
-        }
-      }
-    }
-
-    if (timeCount < levelCounts[currentPoint]) {
-      timeCount = levelCounts[currentPoint];
-      endPoint += timeCount;
-    }
-  }
-};
-
-void printResult() {
-  bool isOutOfResult = timeCount == 0 || endPoint > MAX_POSITION;
+int solve() {
+  int timeCount = 0;
 
   if (startPoint == endPoint) {
-    cout << 0;
-  } else if (isOutOfResult) {
-    cout << OUT_OF_RESULT;
-  } else {
-    cout << timeCount;
+    return timeCount;
   }
-};
+
+  queue<int> bfsQueue;
+
+  visited[timeCount % 2][startPoint] = true;
+  bfsQueue.push(startPoint);
+
+  while (true) {
+    endPoint += timeCount;
+
+    bool isOutEnd = endPoint > MAX_POSITION;
+    if (isOutEnd) {
+      return OUT_OF_RESULT;
+    }
+
+    if (visited[timeCount % 2][endPoint])
+      return timeCount;
+
+    timeCount++;
+
+    int levelSize = bfsQueue.size();
+
+    for (int levelStep = 0; levelStep < levelSize; ++levelStep) {
+      int currentPosition = bfsQueue.front();
+      bfsQueue.pop();
+
+      for (int nextPosition :
+           {currentPosition - 1, currentPosition + 1, currentPosition * 2}) {
+
+        bool isOutBound = nextPosition < 0 || nextPosition > MAX_POSITION;
+        if (isOutBound)
+          continue;
+
+        bool isVisitedMod = visited[timeCount % 2][nextPosition] == true;
+        if (isVisitedMod)
+          continue;
+
+        visited[timeCount % 2][nextPosition] = true;
+        bfsQueue.push(nextPosition);
+      }
+    }
+  }
+
+  return OUT_OF_RESULT;
+}
 
 int main() {
+  cin >> startPoint >> endPoint;
 
-  initPositions();
-
-  fillEndCandidates();
-
-  findGoal();
-
-  printResult();
+  cout << solve();
 
   return 0;
 }
