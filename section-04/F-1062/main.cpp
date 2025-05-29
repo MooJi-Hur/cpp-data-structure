@@ -4,7 +4,6 @@
  */
 
 #include <bitset>
-#include <climits>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -12,93 +11,78 @@
 using namespace std;
 
 // in
-constexpr int MAX_ALPHABET_SIZE = 26;
+int wordCount = 0, alphabetCount = 0;
+constexpr int MAX_WORD = 50;
+constexpr int MAX_ALPHABET = 26;
 
-constexpr int AFFIX_SIZE = 4;
-constexpr int MUST_LEARN_CHAR = 5;
-
-string WORD_PREFIX = "anta";
-string WORD_SUFFIX = "tica";
-
-int wordSize = 0, alphabetSize = 0;
+constexpr int MAX_INNER_LETTER = 15 - 8;
 
 // out
-int maxTeachableWord = 0;
+int maxReadableWord = 0;
+
+constexpr char SMALL_A = 'a';
 
 // logic
-constexpr char START_CHAR = 'a';
+string PREFIX = "anta";
+string SUFFIX = "tica";
 
-bitset<MAX_ALPHABET_SIZE> alphabetState = 0;
+int affixCount = 0;
 
-vector<string> words;
+bitset<MAX_ALPHABET> affixAlphabets;
+vector<int> letterCombiCandidates;
 
-bitset<MAX_ALPHABET_SIZE> onAphabets(string word) {
-  bitset<MAX_ALPHABET_SIZE> alphabetBitset = 0;
-  for (char letter : word) {
+void presetAffix() {
+  string affix = PREFIX + SUFFIX;
 
-    int letterIndex = letter - START_CHAR;
+  for (size_t affixIndex = 0; affixIndex < affix.size(); ++affixIndex) {
+    char affixLetter = affix[affixIndex];
+    int letterIndex = affixLetter - SMALL_A;
 
-    alphabetBitset |= (1 << letterIndex);
-  }
+    affixAlphabets |= (1 << letterIndex);
 
-  return alphabetBitset;
-};
-
-void prepareWords() {
-
-  for (int wordIndex = 0; wordIndex < wordSize; ++wordIndex) {
-    string inWord;
-    cin >> inWord;
-
-    inWord.erase(0, AFFIX_SIZE);
-    inWord.erase(inWord.size() - AFFIX_SIZE, inWord.size());
-
-    words.push_back(inWord);
+    affixCount = affixAlphabets.count();
   }
 };
 
-void countMaxWord() {
-  for (int combiIndex = 0; combiIndex < (1 << wordSize); ++combiIndex) {
-    int wordCount = 0;
-    int charCount = 0;
-    bitset<MAX_ALPHABET_SIZE> combiBit = alphabetState;
+void readWords() {
+  for (int wordIndex = 0; wordIndex < wordCount; ++wordIndex) {
+    string word;
+    getline(cin >> ws, word);
 
-    for (int wordIndex = 0; wordIndex < wordSize; ++wordIndex) {
-      if (combiIndex & (1 << wordIndex)) {
-        wordCount++;
-        combiBit |= onAphabets(words[wordIndex]);
-      }
-    }
+    word.erase(0, PREFIX.size());
+    word.erase(word.size() - SUFFIX.size(), SUFFIX.size());
 
-    for (char currentBit : combiBit.to_string()) {
-      if (currentBit == '1') {
-        charCount++;
-      }
-    }
+    cout << word << '\n';
 
-    if (charCount <= alphabetSize) {
-      maxTeachableWord = max(maxTeachableWord, wordCount);
+    for (int letterIndex = 0; letterIndex < word.size(); ++letterIndex) {
+      cout << word[letterIndex] << ' ';
+      int alphabetIndex = word[letterIndex] - SMALL_A;
     }
   }
+};
+
+void combiAlphabets() {
+
 };
 
 int main() {
+  cin >> wordCount >> alphabetCount;
 
-  cin >> wordSize >> alphabetSize;
+  presetAffix();
 
-  if (alphabetSize < MUST_LEARN_CHAR) {
-    cout << maxTeachableWord;
+  if (affixCount > alphabetCount) {
+    maxReadableWord = 0;
+    cout << maxReadableWord;
     return 0;
   }
 
-  alphabetState |= onAphabets(WORD_PREFIX);
-  alphabetState |= onAphabets(WORD_SUFFIX);
+  readWords();
 
-  prepareWords();
+  // 알파벳 조합마다 읽을 수 있는 단어의 갯수가 다름, 무슨 알파벳인지는 관심 x
+  // 기본적으로 5개는 알아야함,
 
-  countMaxWord();
+  combiAlphabets();
 
-  cout << maxTeachableWord;
-
+  cout << maxReadableWord;
   return 0;
 }
