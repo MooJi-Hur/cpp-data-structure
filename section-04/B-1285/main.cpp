@@ -3,6 +3,7 @@
  * URL: https://www.acmicpc.net/problem/1285
  */
 
+#include <bitset>
 #include <climits>
 #include <iostream>
 #include <string>
@@ -12,52 +13,62 @@ using namespace std;
 
 // in
 int sideLength = 0;
+constexpr int MAX_PLACE = 20;
+constexpr int TAIL = 'T';
 
-constexpr char HEAD = 'H';
-constexpr char TAIL = 'T';
+vector<bitset<MAX_PLACE>> rows;
 
-vector<vector<char>> inGrid;
-vector<vector<bool>> reverseRowCounts;
-vector<vector<bool>> reverseColCounts;
 // out
 int minTailCount = INT_MAX;
 
-// logic
-
-void readGrid() {
-  inGrid.resize(sideLength, vector<char>(sideLength, HEAD));
+void readRows() {
+  rows.resize(sideLength, 0);
 
   for (int rowIndex = 0; rowIndex < sideLength; ++rowIndex) {
     string row;
     getline(cin >> ws, row);
+
+    bitset<MAX_PLACE> bitPlace = 1;
     for (int colIndex = 0; colIndex < sideLength; ++colIndex) {
-      inGrid[rowIndex][colIndex] = row[colIndex];
+
+      if (row[colIndex] == TAIL) {
+        rows[rowIndex] |= bitPlace;
+      }
+      bitPlace = (bitPlace << 1);
     }
   }
 };
 
-void reverseCoins() {
-
-  for (int candidateIndex = 0; candidateIndex < (1 << sideLength);
-       ++candidateIndex) {
-    for (int combiIndex = 0; combiIndex < sideLength; ++combiIndex) {
-      if (candidateIndex & (1 << combiIndex)) {
-        cout << combiIndex << ' ';
+void countTails(int currentRow) {
+  if (currentRow == sideLength) {
+    int tailCount = 0;
+    for (int colIndex = 0; colIndex < sideLength; ++colIndex) {
+      int tailColCount = 0;
+      for (int rowIndex = 0; rowIndex < sideLength; ++rowIndex) {
+        if (rows[rowIndex][colIndex]) {
+          tailColCount++;
+        }
       }
+      tailCount += min(tailColCount, sideLength - tailColCount);
     }
-    cout << '\n';
+    minTailCount = min(minTailCount, tailCount);
+    return;
   }
+
+  countTails(currentRow + 1);
+  rows[currentRow] = ~rows[currentRow];
+  countTails(currentRow + 1);
 };
 
 int main() {
 
   cin >> sideLength;
 
-  readGrid();
+  readRows();
 
-  reverseRowCounts.resize(sideLength, vector<bool>(sideLength, false));
-  reverseCoins();
+  countTails(0);
 
   cout << minTailCount;
+
   return 0;
 }
