@@ -4,6 +4,8 @@
  */
 
 #include <iostream>
+#include <queue>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -11,8 +13,8 @@ using namespace std;
 
 // in
 int rowSize = 0, colSize = 0;
-int startY = 0, startX = 0;
-int goalY = 0, goalX = 0;
+int startRow = 0, startCol = 0;
+int goalRow = 0, goalCol = 0;
 
 vector<vector<char>> inGrid;
 
@@ -33,66 +35,83 @@ constexpr pair<int, int> DELTAS[DIRECTIONS] = {
     {-1, 0}, {0, -1}, {1, 0}, {0, 1}};
 
 void readGrid() {
-  inGrid.resize(rowSize, vector<char>(colSize));
+  inGrid.resize(rowSize + 1, vector<char>(colSize + 1));
 
-  for (auto &row : inGrid) {
-    for (auto &cell : row) {
-
-      cin >> cell;
-      if (cell == START) {
-        cell = EMPTY;
-      }
-      if (cell == END) {
-        cell = FRIEND;
-      }
+  for (int rowIndex = 1; rowIndex <= rowSize; ++rowIndex) {
+    string row;
+    getline(cin >> ws, row);
+    for (int colIndex = 1; colIndex <= colSize; ++colIndex) {
+      inGrid[rowIndex][colIndex] = row[colIndex - 1];
     }
   }
 };
 
-void jump(int currentY, int currentX) {
+void searchRoom() {
 
-  for (auto [deltaY, deltaX] : DELTAS) {
-    int nextY = currentY + deltaY;
-    int nextX = currentX + deltaX;
+  queue<pair<int, int>> currentBFS;
+  queue<pair<int, int>> nextBFS;
 
-    bool isInBound =
-        nextY >= 0 && nextY < rowSize && nextX >= 0 && nextX < colSize;
-    bool isVisitable = isInBound && !visited[nextY][nextX];
-    bool isNextEmpty = isVisitable && (inGrid[nextY][nextX] == EMPTY);
+  visited.resize(rowSize + 1, vector<bool>(colSize + 1, false));
+  visited[startRow][startCol] = true;
+  currentBFS.push({startRow, startCol});
 
-    if (isVisitable) {
-      if (inGrid[nextY][nextX] == EMPTY) {
-        jump(nextY, nextX);
+  while (true) {
 
-      } else if (inGrid[nextY][nextX] == FRIEND) {
-        inGrid[nextY][nextX] = EMPTY;
+    while (!currentBFS.empty()) {
+
+      auto [currentRow, currentCol] = currentBFS.front();
+      currentBFS.pop();
+
+      for (auto [deltaRow, deltaCol] : DELTAS) {
+        int nextRow = currentRow + deltaRow;
+        int nextCol = currentCol + deltaCol;
+
+        bool isOutBound = nextRow <= 0 || nextRow > rowSize || nextCol <= 0 ||
+                          nextCol > colSize;
+
+        if (isOutBound) {
+          continue;
+        }
+
+        if (visited[nextRow][nextCol]) {
+          continue;
+        }
+
+        char nextCell = inGrid[nextRow][nextCol];
+        visited[nextRow][nextCol] = true;
+
+        if (nextCell == FRIEND) {
+          inGrid[nextRow][nextCol] = EMPTY;
+          nextBFS.push({nextRow, nextCol});
+        } else if (nextCell == EMPTY) {
+          currentBFS.push({nextRow, nextCol});
+        } else if (nextCell == END) {
+          jumpCount++;
+          cout << jumpCount;
+          break;
+        }
       }
-      visited[nextY][nextX] = true;
     }
+
+    if (nextBFS.empty()) {
+      break;
+    }
+
+    jumpCount++;
+    currentBFS.swap(nextBFS);
+    nextBFS = queue<pair<int, int>>{};
   }
-}
+};
 
 int main() {
 
   cin >> rowSize >> colSize;
-  cin >> startX >> startY;
-  cin >> goalX >> goalY;
+  cin >> startRow >> startCol;
+  cin >> goalRow >> goalCol;
 
   readGrid();
-  cout << inGrid[goalY - 1][goalX - 1] << '\n';
 
-  int whileCount = 5;
-  while (whileCount > 0) {
-    whileCount--;
-    visited.clear();
-    visited.resize(rowSize, vector<bool>(colSize, false));
-    visited[startY][startX] = true;
+  searchRoom();
 
-    jump(startY, startX);
-    jumpCount++;
-    cout << jumpCount << '\n';
-  }
-
-  cout << jumpCount;
   return 0;
 }
