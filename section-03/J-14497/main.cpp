@@ -56,6 +56,7 @@ void searchRoom() {
   currentBFS.push({startRow, startCol});
 
   while (true) {
+    jumpCount++;
 
     while (!currentBFS.empty()) {
 
@@ -86,7 +87,6 @@ void searchRoom() {
         } else if (nextCell == EMPTY) {
           currentBFS.push({nextRow, nextCol});
         } else if (nextCell == END) {
-          jumpCount++;
           cout << jumpCount;
           break;
         }
@@ -97,7 +97,6 @@ void searchRoom() {
       break;
     }
 
-    jumpCount++;
     currentBFS.swap(nextBFS);
     nextBFS = queue<pair<int, int>>{};
   }
