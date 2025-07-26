@@ -4,80 +4,58 @@
  */
 
 #include <iostream>
-#include <map>
-#include <stack>
 #include <vector>
 
 using namespace std;
 
-constexpr int ROOT_FLAG = -1;
+constexpr int ROOT = -1;
 
-void removeNodes(int &removeId, map<int, vector<int>> &children) {
+int dfs(int startNode, int &delNode, vector<vector<int>> &adjacencyList) {
+  int leafCount = 0;
+  int childrenCount = 0;
 
-  stack<int> dfsStack;
-  dfsStack.push(removeId);
-
-  vector<bool> visited(children.size() - 1, false);
-
-  while (!dfsStack.empty()) {
-    int currentNode = dfsStack.top();
-    dfsStack.pop();
-
-    if (visited[currentNode]) {
+  for (int node : adjacencyList[startNode]) {
+    if (node == delNode) {
       continue;
     }
-    visited[currentNode] = true;
+    childrenCount++;
 
-    if (!children[currentNode].empty()) {
-      for (int childId : children[currentNode]) {
-        dfsStack.push(childId);
-      }
-    }
-    children.erase(currentNode);
+    leafCount += dfs(node, delNode, adjacencyList);
   }
+
+  if (childrenCount == 0) {
+    return 1;
+  }
+
+  return leafCount;
 };
 
 int main() {
   int nodeCount = 0;
   cin >> nodeCount;
 
-  map<int, vector<int>> children;
-  vector<int> parentIds(nodeCount);
+  int rootIndex = -1;
+  vector<vector<int>> adjacencyList(nodeCount);
   for (int nodeIndex = 0; nodeIndex < nodeCount; ++nodeIndex) {
-    int parentId = ROOT_FLAG;
-    cin >> parentId;
-    children[nodeIndex];
-    children[parentId].push_back(nodeIndex);
+    int parentNode = ROOT;
+    cin >> parentNode;
 
-    parentIds[nodeIndex] = parentId;
-  }
-
-  int removeId = ROOT_FLAG;
-  cin >> removeId;
-
-  int parentId = parentIds[removeId];
-
-  for (auto iter = children[parentId].begin(); iter != children[parentId].end();
-       ++iter) {
-    if (*iter == removeId) {
-      children[parentId].erase(iter);
-      break;
+    if (parentNode == ROOT) {
+      rootIndex = nodeIndex;
+      continue;
     }
+
+    adjacencyList[parentNode].push_back(nodeIndex);
   }
 
-  removeNodes(removeId, children);
+  int delNode = -1;
+  cin >> delNode;
 
-  int leafCount = 0;
-
-  for (auto node : children) {
-    int nodeId = node.first;
-    if (children[nodeId].empty()) {
-      if (nodeId != ROOT_FLAG) {
-        leafCount++;
-      }
-    };
+  if (delNode == rootIndex) {
+    cout << 0;
+    return 0;
   }
-  cout << leafCount;
-
+  cout << dfs(rootIndex, delNode, adjacencyList);
+  //
   return 0;
 }

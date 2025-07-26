@@ -3,61 +3,50 @@
  * URL: https://www.acmicpc.net/problem/1325
  */
 
-#include <array>
 #include <iostream>
 #include <vector>
 
 using namespace std;
 
-constexpr int MAX_COMPUTER_COUNT = 10000;
-constexpr int MAX_EDGE_COUNT = 100000;
+int dfs(int &computerIndex,
+        vector<vector<int>> &adjacencyList,
+        vector<bool> &visited) {
+  visited[computerIndex] = true;
+  int targetCount = 1;
 
-int calcAdjacencyCount(vector<vector<int>> &adjacencyList,
-                       int &startIndex,
-                       array<bool, MAX_COMPUTER_COUNT + 1> &visited) {
-  int edgeCount = 1;
-  visited[startIndex] = true;
-  for (int node : adjacencyList[startIndex]) {
-    if (visited[node]) {
-      continue;
+  for (int next : adjacencyList[computerIndex]) {
+    if (!visited[next]) {
+      targetCount += dfs(next, adjacencyList, visited);
     }
-    edgeCount += calcAdjacencyCount(adjacencyList, node, visited);
   }
-
-  return edgeCount;
+  return targetCount;
 };
 
 int main() {
-
   int computerCount = 0, edgeCount = 0;
   cin >> computerCount >> edgeCount;
 
-  vector<vector<int>> adjacencyList(MAX_COMPUTER_COUNT + 1);
+  vector<vector<int>> adjacencyList(computerCount + 1);
+  for (int edgeIndex = 0; edgeIndex < edgeCount; ++edgeIndex) {
+    int targetComputer = 0, sourceComputer = 0;
+    cin >> targetComputer >> sourceComputer;
 
-  for (int computerIndex = 0; computerIndex < edgeCount; ++computerIndex) {
-    int computerA = 0, computerB = 0;
-    cin >> computerA >> computerB;
-
-    adjacencyList[computerB].push_back(computerA);
+    adjacencyList[sourceComputer].push_back(targetComputer);
   }
 
-  int maxCount = 0;
-  vector<int> adjacencyCounts(MAX_COMPUTER_COUNT + 1);
-  array<bool, MAX_COMPUTER_COUNT + 1> visited;
-
+  int maxTargetCount = 0;
+  vector<int> targetCounts(computerCount + 1, 0);
   for (int computerIndex = 1; computerIndex <= computerCount; ++computerIndex) {
-    visited.fill(false);
-    adjacencyCounts[computerIndex] =
-        calcAdjacencyCount(adjacencyList, computerIndex, visited);
+    vector<bool> visited(computerCount + 1, false);
+    targetCounts[computerIndex] = dfs(computerIndex, adjacencyList, visited);
 
-    maxCount = max(maxCount, adjacencyCounts[computerIndex]);
+    maxTargetCount = max(maxTargetCount, targetCounts[computerIndex]);
   }
 
   for (int computerIndex = 1; computerIndex <= computerCount; ++computerIndex) {
-    if (adjacencyCounts[computerIndex] == maxCount) {
+    if (maxTargetCount == targetCounts[computerIndex]) {
       cout << computerIndex << ' ';
     }
   }
-
   return 0;
 }
