@@ -4,68 +4,62 @@
  */
 
 #include <iostream>
-#include <list>
 #include <map>
 #include <vector>
 
 using namespace std;
 
 // in
-int depth = 0;
-
-// logic
-list<int> visitedOrder;
+int treeHeight;
+vector<int> inNodes;
 
 // out
-map<int, vector<int>> orderByLevel;
+map<int, vector<int>> sortedByLevel;
 
-void readVisited() {
-  int visitedSize = (1 << depth) - 1;
+// logic
 
-  for (int visitedIndex = 0; visitedIndex < visitedSize; ++visitedIndex) {
-    int visitedCell = 0;
-    cin >> visitedCell;
-    visitedOrder.push_back(visitedCell);
+void readNodes() {
+  int nodeSize = (1 << treeHeight) - 1;
+  inNodes.resize(nodeSize);
+
+  for (int nodeIndex = 0; nodeIndex < nodeSize; ++nodeIndex) {
+    cin >> inNodes[nodeIndex];
   }
 }
 
-void sortByLevel() {
+void findNextLevel(int startIndex, int endIndex, int currentLevel) {
+  if (currentLevel > treeHeight) {
+    return;
+  }
 
-  for (int levelIndex = depth; levelIndex > 0; --levelIndex) {
+  // startIndex = 4, endIndex = 6 -> halfSize = 1, midIndex = 5;
+  int halfSize = (endIndex - startIndex) >> 1;
 
-    vector<int> currentLevelNode;
+  int midIndex = startIndex + halfSize;
+  sortedByLevel[currentLevel].push_back(inNodes[midIndex]);
 
-    bool isOdd = true;
-    for (auto visitedItor = visitedOrder.begin();
-         visitedItor != visitedOrder.end();) {
+  findNextLevel(startIndex, midIndex - 1, currentLevel + 1);
+  findNextLevel(midIndex + 1, endIndex, currentLevel + 1);
+}
 
-      if (isOdd) {
-        currentLevelNode.push_back(*visitedItor);
-        visitedItor = visitedOrder.erase(visitedItor);
-      } else {
-        visitedItor++;
-      }
-
-      isOdd = !isOdd;
+void printNodes() {
+  for (int levelIndex = 1; levelIndex <= sortedByLevel.size(); ++levelIndex) {
+    for (int nodeIndex = 0; nodeIndex < sortedByLevel[levelIndex].size();
+         ++nodeIndex) {
+      cout << sortedByLevel[levelIndex][nodeIndex] << ' ';
     }
-    orderByLevel[levelIndex] = currentLevelNode;
+    cout << '\n';
   }
 }
 
 int main() {
+  cin >> treeHeight;
 
-  cin >> depth;
+  readNodes();
 
-  readVisited();
+  findNextLevel(0, inNodes.size() - 1, 1);
 
-  sortByLevel();
-
-  for (auto [key, value] : orderByLevel) {
-    for (auto cell : value) {
-      cout << cell << ' ';
-    }
-    cout << '\n';
-  }
+  printNodes();
 
   return 0;
 }
