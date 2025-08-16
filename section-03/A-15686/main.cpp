@@ -3,144 +3,81 @@
  * URL: https://www.acmicpc.net/problem/15686
  */
 
-#include <algorithm>
 #include <climits>
 #include <iostream>
-#include <numeric>
 #include <utility>
 #include <vector>
 
 using namespace std;
 
-struct ShopSorter {
-  int houseRowAvg, houseColAvg;
+int sideLength, maxShopCount;
 
-  ShopSorter(int rowAvg, int colAvg)
-      : houseRowAvg(rowAvg), houseColAvg(colAvg) {}
+constexpr int HOME = 1;
+constexpr int SHOP = 2;
 
-  bool operator()(pair<int, int> a, pair<int, int> b) const {
-    int houseAvgToA = 0, houseAvgToB = 0;
+vector<vector<int>> shopCombis;
+vector<pair<int, int>> homes, shops;
 
-    auto [rowA, colA] = a;
-    auto [rowB, colB] = b;
+int minDistance = INT_MAX;
 
-    houseAvgToA = abs(houseRowAvg - rowA) + abs(houseColAvg - colA);
-    houseAvgToB = abs(houseRowAvg - rowB) + abs(houseColAvg - colB);
+void readGrid() {
+  cin >> sideLength >> maxShopCount;
 
-    return houseAvgToA < houseAvgToB;
-  }
-};
+  for (int rowIndex = 0; rowIndex < sideLength; ++rowIndex) {
+    for (int colIndex = 0; colIndex < sideLength; ++colIndex) {
+      int placeInfo = 0;
+      cin >> placeInfo;
 
-void buildPoints(int &cityBlockCount,
-                 int &houseRowSum,
-                 int &houseColSum,
-                 vector<pair<int, int>> &housePoints,
-                 vector<pair<int, int>> &shopPoints);
+      if (placeInfo == HOME) {
+        homes.push_back({rowIndex, colIndex});
+      }
 
-void selectMaxProfitShops(int &maxShopCount,
-                          int &houseRowSum,
-                          int &houseColSum,
-                          vector<pair<int, int>> &housePoints,
-                          vector<pair<int, int>> &shopPoints);
-
-void updateCityShopDistance(int &cityShopDistace,
-                            vector<pair<int, int>> &housePoints,
-                            vector<pair<int, int>> &shopPoints);
-
-void printCityShopDistance(int &cityShopDistace);
-
-int main() {
-  int cityBlockCount = 0, maxShopCount = 0;
-
-  cin >> cityBlockCount >> maxShopCount;
-
-  int cityShopDistace = 0;
-
-  int houseRowSum = 0, houseColSum = 0;
-
-  vector<pair<int, int>> housePoints;
-  vector<pair<int, int>> shopPoints;
-
-  buildPoints(cityBlockCount, houseRowSum, houseColSum, housePoints,
-              shopPoints);
-
-  selectMaxProfitShops(maxShopCount, houseRowSum, houseColSum, housePoints,
-                       shopPoints);
-
-  updateCityShopDistance(cityShopDistace, housePoints, shopPoints);
-
-  printCityShopDistance(cityShopDistace);
-
-  return 0;
-}
-
-void buildPoints(int &cityBlockCount,
-                 int &houseRowSum,
-                 int &houseColSum,
-                 vector<pair<int, int>> &housePoints,
-                 vector<pair<int, int>> &shopPoints) {
-
-  constexpr int EMPTY = 0;
-  constexpr int HOUSE = 1;
-  constexpr int SHOP = 2;
-
-  for (int rowIndex = 0; rowIndex < cityBlockCount; ++rowIndex) {
-    for (int colIndex = 0; colIndex < cityBlockCount; ++colIndex) {
-      int currentPlace = EMPTY;
-      cin >> currentPlace;
-
-      switch (currentPlace) {
-      case HOUSE:
-        housePoints.push_back({rowIndex, colIndex});
-        houseRowSum += rowIndex;
-        houseColSum += colIndex;
-        break;
-      case SHOP:
-        shopPoints.push_back({rowIndex, colIndex});
-        break;
-      default:
-        break;
+      if (placeInfo == SHOP) {
+        shops.push_back({rowIndex, colIndex});
       }
     }
   }
 }
 
-// 조합을 사용한 방식으로 수정 필요
-void selectMaxProfitShops(int &maxShopCount,
-                          int &houseRowSum,
-                          int &houseColSum,
-                          vector<pair<int, int>> &housePoints,
-                          vector<pair<int, int>> &shopPoints) {
-
-  int houseRowAvg = housePoints.empty() ? 0 : houseRowSum / housePoints.size();
-  int houseColAvg = housePoints.empty() ? 0 : houseColSum / housePoints.size();
-
-  sort(shopPoints.begin(), shopPoints.end(),
-       ShopSorter(houseRowAvg, houseColAvg));
-
-  int shopCountToKeep = min(maxShopCount, static_cast<int>(shopPoints.size()));
-
-  shopPoints.resize(shopCountToKeep);
-};
-
-void updateCityShopDistance(int &cityShopDistace,
-                            vector<pair<int, int>> &housePoints,
-                            vector<pair<int, int>> &shopPoints) {
-
-  for (auto [houseRow, houseCol] : housePoints) {
-    int minHouseShopDistance = INT_MAX;
-
-    for (auto [shopRow, shopCol] : shopPoints) {
-      int localHouseShopDistance = 0;
-
-      localHouseShopDistance =
-          abs(houseRow - shopRow) + abs(houseCol - shopCol);
-
-      minHouseShopDistance = min(minHouseShopDistance, localHouseShopDistance);
-    }
-
-    cityShopDistace += minHouseShopDistance;
+void combiShops(int startIndex, vector<int> shopCombi) {
+  if (maxShopCount == shopCombi.size()) {
+    shopCombis.push_back(shopCombi);
+    return;
   }
-};
 
-void printCityShopDistance(int &cityShopDistace) { cout << cityShopDistace; };
+  for (size_t nextIndex = startIndex + 1; nextIndex < shops.size();
+       ++nextIndex) {
+    shopCombi.push_back(nextIndex);
+    combiShops(nextIndex, shopCombi);
+    shopCombi.pop_back();
+  }
+}
+
+void calcMinDistance() {
+  for (vector<int> shopCombi : shopCombis) {
+    int distanceCombi = 0;
+    for (pair<int, int> home : homes) {
+      int minHomeToShop = INT_MAX;
+      for (int shopIndex : shopCombi) {
+        int homeToShop = abs(home.first - shops[shopIndex].first) +
+                         abs(home.second - shops[shopIndex].second);
+
+        minHomeToShop = min(minHomeToShop, homeToShop);
+      }
+      distanceCombi += minHomeToShop;
+    }
+    minDistance = min(minDistance, distanceCombi);
+  }
+}
+
+int main() {
+
+  readGrid();
+
+  combiShops(-1, vector<int>{});
+
+  calcMinDistance();
+
+  cout << minDistance;
+  return 0;
+}
