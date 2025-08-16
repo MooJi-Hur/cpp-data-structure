@@ -9,47 +9,40 @@
 
 using namespace std;
 
-// in
-int testSize = 0;
-
-// out
-string VAILED = "YES";
-string INVALIED = "NO";
-
-// logic
-string VPS = "()";
+int inSize;
 
 int main() {
-  cin >> testSize;
+  cin >> inSize;
 
-  for (int testIndex = 0; testIndex < testSize; ++testIndex) {
-    string row;
-    getline(cin >> ws, row);
+  for (int inIndex = 0; inIndex < inSize; ++inIndex) {
+    string inRow;
+    getline(cin >> ws, inRow);
 
     stack<char> parenthesisStack;
-
-    for (char letter : row) {
+    for (int colIndex = 0; colIndex < inRow.size(); ++colIndex) {
       if (parenthesisStack.empty()) {
-        parenthesisStack.push(letter);
+        parenthesisStack.push(inRow[colIndex]);
         continue;
       }
 
-      char topLetter = parenthesisStack.top();
+      string lastTwo = string() + parenthesisStack.top() + inRow[colIndex];
 
-      string currentPair = string() + topLetter + letter;
+      bool isPair = lastTwo == "()";
 
-      if (currentPair == VPS) {
+      if (isPair) {
         parenthesisStack.pop();
       } else {
-        parenthesisStack.push(letter);
+        parenthesisStack.push(inRow[colIndex]);
       }
     }
 
     if (parenthesisStack.empty()) {
-      cout << VAILED << '\n';
+      cout << "YES" << '\n';
     } else {
-      cout << INVALIED << '\n';
+      cout << "NO" << '\n';
     }
   }
+
+  //
   return 0;
 }

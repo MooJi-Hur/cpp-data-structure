@@ -18,22 +18,22 @@ vector<char> inOperators;
 constexpr char ZERO = '0';
 
 // out
-int maxValue = INT_MIN;
+int maxResult = INT_MIN;
 
 void readExpression() {
-  string inExpression;
-  cin >> inExpression;
+  string inRow;
+  getline(cin >> ws, inRow);
+
   for (int inIndex = 0; inIndex < inSize; ++inIndex) {
     if (inIndex % 2 == 0) {
-      inOperands.push_back(inExpression[inIndex] - ZERO);
-
+      inOperands.push_back(inRow[inIndex] - ZERO);
     } else {
-      inOperators.push_back(inExpression[inIndex]);
+      inOperators.push_back(inRow[inIndex]);
     }
   }
 }
 
-int calcExpression(int firstValue, int secondValue, char inOperator) {
+int calcOperater(int firstValue, int secondValue, char inOperator) {
   if (inOperator == '+') {
     return firstValue + secondValue;
   } else if (inOperator == '-') {
@@ -41,39 +41,44 @@ int calcExpression(int firstValue, int secondValue, char inOperator) {
   } else if (inOperator == '*') {
     return firstValue * secondValue;
   }
-  return 0;
+
+  return -1;
 }
 
 void simulateExpression(int currentIndex, int prevResult) {
-
-  if (currentIndex >= inOperators.size()) {
-    maxValue = max(maxValue, prevResult);
+  if (currentIndex == inOperators.size()) {
+    maxResult = max(maxResult, prevResult);
     return;
   }
 
-  int currentResult = calcExpression(prevResult, inOperands[currentIndex + 1],
-                                     inOperators[currentIndex]);
+  int currentResult = calcOperater(prevResult, inOperands[currentIndex + 1],
+                                   inOperators[currentIndex]);
+
   simulateExpression(currentIndex + 1, currentResult);
 
-  if (currentIndex + 1 < inOperators.size()) {
-    int secondValue = calcExpression(inOperands[currentIndex + 1],
-                                     inOperands[currentIndex + 2],
-                                     inOperators[currentIndex + 1]);
-
-    currentResult =
-        calcExpression(prevResult, secondValue, inOperators[currentIndex]);
-
-    simulateExpression(currentIndex + 2, currentResult);
+  if (currentIndex + 1 >= inOperators.size()) {
+    return;
   }
+
+  int secondValue =
+      calcOperater(inOperands[currentIndex + 1], inOperands[currentIndex + 2],
+                   inOperators[currentIndex + 1]);
+
+  currentResult =
+      calcOperater(prevResult, secondValue, inOperators[currentIndex]);
+
+  simulateExpression(currentIndex + 2, currentResult);
 }
 
 int main() {
 
   cin >> inSize;
+
   readExpression();
 
   simulateExpression(0, inOperands[0]);
 
-  cout << maxValue;
+  cout << maxResult;
+
   return 0;
 }

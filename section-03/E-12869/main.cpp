@@ -4,74 +4,92 @@
  */
 
 #include <array>
+#include <climits>
 #include <iostream>
 #include <queue>
+#include <tuple>
 
 using namespace std;
 
 // in
-int svcSize = 0;
+int svcSize;
+constexpr int MAX_SVC_COUNT = 3;
+array<int, MAX_SVC_COUNT> svcs = {0};
+
+// out
+int minAttackCount;
 
 // logic
-typedef struct Svc {
-  int a, b, c;
-} Svc;
+typedef struct SVC {
+  int firstSVC;
+  int secondSVC;
+  int thirdSVC;
+  int currentLevel = 0;
 
-array<int, 3> inSVC;
+  int getSum() { return firstSVC + secondSVC + thirdSVC; }
+} SVC;
 
-constexpr int DAMAGES[6][3] = {{9, 3, 1}, {9, 1, 3}, {3, 9, 1},
-                               {3, 1, 9}, {1, 9, 3}, {1, 3, 9}};
+constexpr int ORDER_SIZE = 6;
+array<int, MAX_SVC_COUNT> attackOrders[ORDER_SIZE] = {
+    {9, 3, 1}, {9, 1, 3}, {3, 9, 1}, {3, 1, 9}, {1, 9, 3}, {1, 3, 9}};
 
-int visited[64][64][64];
+bool visited[61][61][61] = {false};
 
-void readSVC() {
+void readSvc() {
+  cin >> svcSize;
   for (int svcIndex = 0; svcIndex < svcSize; ++svcIndex) {
-    cin >> inSVC[svcIndex];
+    cin >> svcs[svcIndex];
   }
 }
 
-int solve() {
-  queue<Svc> bfsQueue;
-
-  auto [a, b, c] = inSVC;
-  visited[a][b][c] = 1;
-  bfsQueue.push(Svc{a, b, c});
+void calcSvc() {
+  queue<SVC> bfsQueue;
+  int firstSVC = svcs[0], secondSVC = svcs[1], thirdSVC = svcs[2];
+  bfsQueue.push(SVC{firstSVC, secondSVC, thirdSVC, 0});
+  visited[firstSVC][secondSVC][thirdSVC] = true;
 
   while (!bfsQueue.empty()) {
-    Svc current = bfsQueue.front();
+    SVC currentSvc = bfsQueue.front();
     bfsQueue.pop();
 
-    if (current.a == 0 && current.b == 0 && current.c == 0) {
-      break;
+    bool isAllKilled = currentSvc.getSum() == 0;
+
+    if (isAllKilled) {
+      minAttackCount = currentSvc.currentLevel;
+      return;
     }
 
-    for (auto [damageA, damageB, damageC] : DAMAGES) {
+    for (int orderIndex = 0; orderIndex < ORDER_SIZE; ++orderIndex) {
 
-      Svc next;
-      next.a = max(0, current.a - damageA);
-      next.b = max(0, current.b - damageB);
-      next.c = max(0, current.c - damageC);
+      int nextFirstSvc =
+          max(0, currentSvc.firstSVC - attackOrders[orderIndex][0]);
 
-      if (visited[next.a][next.b][next.c]) {
+      int nextSecondSvc =
+          max(0, currentSvc.secondSVC - attackOrders[orderIndex][1]);
+
+      int nextThirdSvc =
+          max(0, currentSvc.thirdSVC - attackOrders[orderIndex][2]);
+
+      if (visited[nextFirstSvc][nextSecondSvc][nextThirdSvc])
         continue;
-      }
 
-      visited[next.a][next.b][next.c] =
-          visited[current.a][current.b][current.c] + 1;
+      visited[nextFirstSvc][nextSecondSvc][nextThirdSvc] = true;
 
-      bfsQueue.push(next);
+      SVC nextSVC = SVC{nextFirstSvc, nextSecondSvc, nextThirdSvc,
+                        currentSvc.currentLevel + 1};
+
+      bfsQueue.push(nextSVC);
     }
   }
-  return visited[0][0][0] - 1;
 }
 
 int main() {
 
-  cin >> svcSize;
+  readSvc();
 
-  readSVC();
+  calcSvc();
 
-  cout << solve();
+  cout << minAttackCount;
 
   return 0;
 }
